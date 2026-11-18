@@ -1,0 +1,37 @@
+[mysqld]
+# server_id and report_host are passed per node in compose.yaml.
+
+# --- Replication: GTID auto-positioning, so any replica can be repointed at
+# any other node without binlog file/offset bookkeeping.
+gtid_mode                 = ON
+enforce_gtid_consistency  = ON
+log_bin                   = binlog
+log_replica_updates       = ON
+binlog_expire_logs_seconds = 86400
+relay_log                 = relay-bin
+relay_log_recovery        = ON
+# IO thread notices a dead source in ~5s on its own (heartbeat = half of this).
+replica_net_timeout       = 5
+
+# --- Durability: an acknowledged commit is on disk on the source.
+sync_binlog                    = 1
+innodb_flush_log_at_trx_commit = 1
+
+# --- Semi-sync on every node, because any node can become primary.
+# The source side is enabled at runtime on the current primary only (bootstrap
+# now, the coordinator from M2). Enabling it here would block the entrypoint's
+# first writes forever, since no replica is connected during init.
+plugin_load_add = semisync_source.so
+plugin_load_add = semisync_replica.so
+loose_rpl_semi_sync_replica_enabled               = ON
+loose_rpl_semi_sync_source_wait_point             = AFTER_SYNC
+loose_rpl_semi_sync_source_wait_for_replica_count = 1
+# Max value (~49 days): never fall back to async. A fenced-off old primary
+# cannot commit, because no replica will acknowledge it. This trades write
+# availability (both replicas down => writes block) for no lost acked writes.
+loose_rpl_semi_sync_source_timeout                = 4294967295
+
+# --- Lab sizing (Docker Desktop VM has ~8 GB shared with other clusters).
+innodb_buffer_pool_size = 256M
+max_connections         = 200
+skip_name_resolve       = ON

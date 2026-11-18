@@ -1,0 +1,118 @@
+name: hafo
+
+# Three "nodes", each a MySQL + Redis pair on one bridge network. The Go agent
+# (M1) and coordinator/router (M2) join this file later. Container names are
+# fixed so chaos tooling can target them directly (docker pause hafo-mysql-1).
+
+x-mysql: &mysql
+  image: mysql:8.4.13
+  env_file: deploy/dev.env
+  environment:
+    # The entrypoint's timezone load is binlogged; skipping it keeps every
+    # node's gtid_executed empty until bootstrap, so no GTIDs are errant.
+    MYSQL_INITDB_SKIP_TZINFO: "1"
+  healthcheck:
+    # TCP to 127.0.0.1 fails while the entrypoint's init server runs with
+    # --skip-networking, so "healthy" means the real server is up.
+    test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_ROOT_PASSWORD\" mysqladmin ping -h 127.0.0.1 -uroot --silent"]
+    interval: 2s
+    timeout: 2s
+    retries: 30
+    start_period: 90s
+  stop_grace_period: 30s
+  networks: [hanet]
+
+x-redis: &redis
+  image: redis:7.4.9-alpine
+  # Health records and leases are ephemeral by design (see docs/design.md).
+  command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb"]
+  healthcheck:
+    test: ["CMD", "redis-cli", "ping"]
+    interval: 2s
+    timeout: 2s
+    retries: 15
+  networks: [hanet]
+
+services:
+  mysql-1:
+    <<: *mysql
+    container_name: hafo-mysql-1
+    hostname: mysql-1
+    command: ["--server-id=1", "--report-host=mysql-1"]
+    ports: ["127.0.0.1:33061:3306"]
+    volumes:
+      - ./deploy/mysql/hafo.cnf:/etc/mysql/conf.d/hafo.cnf:ro
+      - ./deploy/mysql/initdb:/docker-entrypoint-initdb.d:ro
+      - mysql-1-data:/var/lib/mysql
+
+  mysql-2:
+    <<: *mysql
+    container_name: hafo-mysql-2
+    hostname: mysql-2
+    command: ["--server-id=2", "--report-host=mysql-2"]
+    ports: ["127.0.0.1:33062:3306"]
+    volumes:
+      - ./deploy/mysql/hafo.cnf:/etc/mysql/conf.d/hafo.cnf:ro
+      - ./deploy/mysql/initdb:/docker-entrypoint-initdb.d:ro
+      - mysql-2-data:/var/lib/mysql
+
+  mysql-3:
+    <<: *mysql
+    container_name: hafo-mysql-3
+    hostname: mysql-3
+    command: ["--server-id=3", "--report-host=mysql-3"]
+    ports: ["127.0.0.1:33063:3306"]
+    volumes:
+      - ./deploy/mysql/hafo.cnf:/etc/mysql/conf.d/hafo.cnf:ro
+      - ./deploy/mysql/initdb:/docker-entrypoint-initdb.d:ro
+      - mysql-3-data:/var/lib/mysql
+
+  redis-1:
+    <<: *redis
+    container_name: hafo-redis-1
+    hostname: redis-1
+    ports: ["127.0.0.1:63791:6379"]
+
+  redis-2:
+    <<: *redis
+    container_name: hafo-redis-2
+    hostname: redis-2
+    ports: ["127.0.0.1:63792:6379"]
+
+  redis-3:
+    <<: *redis
+    container_name: hafo-redis-3
+    hostname: redis-3
+    ports: ["127.0.0.1:63793:6379"]
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: hafo-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=2d
+      - --web.enable-lifecycle
+    # 19090 on the host: 9090 is commonly taken by kubectl port-forwards.
+    ports: ["127.0.0.1:19090:9090"]
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks: [hanet]
+
+  # Not started by `up`. Built once, then run in a node's network namespace
+  # (docker run --network container:hafo-mysql-2 ...) to shape or cut traffic
+  # without installing tc/iptables in the MySQL image.
+  nettools:
+    profiles: ["tools"]
+    build: deploy/nettools
+    image: hafo-nettools:local
+
+networks:
+  hanet:
+    name: hafo-net
+
+volumes:
+  mysql-1-data:
+  mysql-2-data:
+  mysql-3-data:
+  prometheus-data:

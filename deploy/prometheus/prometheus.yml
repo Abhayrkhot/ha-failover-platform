@@ -1,0 +1,15 @@
+global:
+  # Fast scrape/eval so detection latency is bounded by our probes, not by
+  # Prometheus. Revisit once M1 measures how detection time splits.
+  scrape_interval: 1s
+  evaluation_interval: 1s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # M1: agents expose /metrics on :9100.
+  # - job_name: agents
+  #   static_configs:
+  #     - targets: ["agent-1:9100", "agent-2:9100", "agent-3:9100"]
