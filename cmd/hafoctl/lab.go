@@ -477,6 +477,27 @@ func retryConn(ctx context.Context, f func() error) error {
 	return err
 }
 
+// dataMiB is the InnoDB data + index size of the given schemas on db, read
+// fresh: information_schema caches table statistics for a day by default.
+func dataMiB(ctx context.Context, db *sql.DB, schemas ...string) (float64, error) {
+	conn, err := db.Conn(ctx)
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Close()
+	if _, err := conn.ExecContext(ctx, "SET SESSION information_schema_stats_expiry = 0"); err != nil {
+		return 0, err
+	}
+	args := make([]any, len(schemas))
+	for i, s := range schemas {
+		args[i] = s
+	}
+	var mib float64
+	err = conn.QueryRowContext(ctx, `SELECT IFNULL(SUM(DATA_LENGTH + INDEX_LENGTH), 0) / 1048576 FROM information_schema.TABLES
+		WHERE TABLE_SCHEMA IN (`+strings.TrimSuffix(strings.Repeat("?,", len(schemas)), ",")+`)`, args...).Scan(&mib)
+	return mib, err
+}
+
 // clientView reads a window of writes back from the primary.
 type clientView struct {
 	Acked       int `json:"acked"`

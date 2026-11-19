@@ -14,7 +14,10 @@ stopped taking writes. It then claims a new epoch, promotes the replica that
 holds every other replica's transactions, and publishes the new topology. A
 Go router follows that topology. In a chaos campaign of 30 primary failures,
 writes came back in 2.5s (p50) and 2.9s (max), with zero acknowledged writes
-lost and zero split-brain invariant violations.
+lost and zero split-brain invariant violations. Backups are Clone snapshots plus a
+continuously streamed binlog archive. A drill that deletes all three nodes'
+data restores 5.5 GiB onto three nodes in about 49s, losing at most the last
+half second of writes.
 
 ## The resume bullets and the evidence
 
@@ -23,10 +26,11 @@ lost and zero split-brain invariant violations.
 | Go failover coordinator using MySQL replication and Redis health state; recovers service within 5s | 30/30 primary failures (crash, hang, partition) recovered; fault → first write acknowledged by the new primary: p50 2.49s, max 2.87s | [failover report](../results/failover-20261119-055014.json) |
 | Quorum-based leader fencing and replica promotion; no split brain during 30 injected node failures | 0 violations across 30 primary failures plus 10 coordinator-leader kills mid-promotion: 0 of 21,451 acked writes lost, the client never saw two primaries, every row only an old primary held was unacknowledged, one epoch per fault, identical checksums after every trial, 0 failovers in 10 control trials | same report; [e2e](../results/e2e-20261119-054454.json) |
 | Prometheus metrics for replication lag and error rates; detects unhealthy replicas within 2s | 50/50 replica faults (hang, crash, partition, stopped and stalled applier) detected; agent verdict on the Redis majority ≤0.92s, Prometheus alert firing ≤1.23s; 0/10 control false positives | [detect report](../results/detect-20261119-060340.json) |
-| Backups and recovery drills; restores data in under 90s across 3 nodes | M4, not built yet. A single-node rebuild with MySQL Clone already takes ~9s | — |
+| Automated backups and recovery drills with Bash and Go; restores data in under 90s across 3 nodes | Clone backups (Bash) plus a Go binlog archiver; the Go drill destroys all three nodes' data and Redis, then restores. 5.5 GiB onto 3 nodes in 46.8–51.3s (3 drills); ≤1 acked write lost; identical checksums on every node | [drill reports](../results/) (`drill-*.json`) |
 
 If the numbers are quoted, quote the measured ones: "within 3 seconds
-(p50 2.5s)" is more impressive and more defensible than "within 5".
+(p50 2.5s)" is more impressive and more defensible than "within 5", and
+"5.5 GiB across 3 nodes in under 55 seconds" says more than "under 90".
 
 ## Questions to expect, and the answers
 
@@ -93,6 +97,30 @@ node. Writes resumed about 11s after Redis returned.
 the coordinator does not fail over, because the primary is fine. Writes
 resume as soon as one replica is back. Tested.
 
+**How do backups and restores work?** Backups are hot physical copies made
+with MySQL Clone (`CLONE LOCAL DATA DIRECTORY`) on a replica, so the primary
+isn't loaded: 5.6 GiB takes about 7s. A Go archiver streams a replica's
+binlog continuously (`mysqlbinlog --raw --stop-never`) and follows
+failovers. A restore copies the backup onto all three nodes in parallel,
+replays the archive on one of them, and starts the platform. The coordinator
+then finds no topology, rebuilds it from the epoch history stored in the
+data, promotes the node that replayed the archive, and the others catch up
+by replication. The disaster-recovery path reuses the same code as ordinary
+recovery.
+
+**Why archive a replica and not the primary?** A primary's binlog can contain
+a commit no replica ever acknowledged, the errant rows from the failover
+campaign. Replaying that in a restore would resurrect data the cluster
+deliberately threw away. A replica's binlog holds only what it applied. The
+measured price: in a total-loss disaster, up to ~0.5s of acknowledged writes
+(0 or 1 write per drill) can be missing, the ones still in a replica's relay
+log.
+
+**How do you replay binlogs from several servers safely?** With GTIDs.
+Every transaction has a global ID, `--exclude-gtids=<backup set>` skips
+what the backup holds, and the server ignores any transaction it has already
+executed. Order the sources by when they were archived, and the rest follows.
+
 ## Bugs worth telling as stories
 
 - **A metastable failure in the monitoring itself.** Adding coordinators
@@ -116,6 +144,11 @@ resume as soon as one replica is back. Tested.
   write, and stopped finishing within 3 minutes after ~18,000 transactions.
   MySQL Clone copies the primary physically in about 9s, regardless of
   history.
+- **Replay that scaled with the wrong thing.** Restores slowed from 62s to
+  69s across three identical drills, because replay read the entire archive,
+  every old source plus a 3 GiB seed. Each binlog file's `Previous-GTIDs`
+  header says what came before it, so whole files the backup already covers
+  can be skipped without reading them. Restore time dropped to ~49s.
 - **A truncated config file.** Docker Desktop served a running container a
   stale-size copy of an edited config. It still parsed, so Prometheus lost
   its scrape targets without any error. The reload script now compares
@@ -135,6 +168,12 @@ resume as soon as one replica is back. Tested.
 - **The lab runs on Docker on one machine**, so a "partition" is
   `docker network disconnect`. That cuts the whole MySQL container off, not
   an asymmetric slice of the network.
+- **Backups live on the same machine.** Production would ship them and the
+  archive to object storage, encrypted, in another failure domain, and
+  prune the archive alongside backup retention.
+- **Restore RPO is about 0.5s, not 0**, because of the replica-archive choice
+  above. A semi-sync-aware archiver that acknowledges like a replica could
+  close it, at the cost of commit latency.
 - **Off-the-shelf alternatives:** Orchestrator plus a proxy, MySQL Group
   Replication / InnoDB Cluster (Paxos-based), Vitess. This project rebuilds
   the core of the Orchestrator-plus-proxy pattern to understand and measure

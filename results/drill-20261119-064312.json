@@ -1,0 +1,64 @@
+{
+  "kind": "drill",
+  "commit": "731eeb1-dirty",
+  "started_at": "2026-11-19T06:43:12.928099228Z",
+  "finished_at": "2026-11-19T06:45:16.217021588Z",
+  "dataset_mib": 5624.5469,
+  "backup": {
+    "backup": "20261119T064327Z",
+    "bytes": 6054068101,
+    "gtid_executed_after": "176ac4d8-e3e3-11f1-8062-6aaa6aab5b99:1-3170,2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,5287a1a2-e3e4-11f1-be10-9661e3083821:1-1992,6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:1-3168,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-7249,c9901f14-e3e3-11f1-8770-56e2e0e75456:1-3487,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820",
+    "gtid_executed_before": "176ac4d8-e3e3-11f1-8062-6aaa6aab5b99:1-3170,2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,5287a1a2-e3e4-11f1-be10-9661e3083821:1-1693,6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:1-3168,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-7249,c9901f14-e3e3-11f1-8770-56e2e0e75456:1-3487,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820",
+    "method": "CLONE LOCAL DATA DIRECTORY",
+    "source": "mysql-2",
+    "took_ms": 6379
+  },
+  "writes_after_backup_for": "20s",
+  "restore_phases": [
+    {
+      "name": "copy the backup into 3 fresh volumes (parallel)",
+      "ms": 12542.595
+    },
+    {
+      "name": "start MySQL on the restored data",
+      "ms": 6113.415
+    },
+    {
+      "name": "clear replication state copied with the backup",
+      "ms": 334.742,
+      "detail": "backup holds 176ac4d8-e3e3-11f1-8062-6aaa6aab5b99:1-3170,2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,5287a1a2-e3e4-11f1-be10-9661e3083821:1-1982,6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:1-3168,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-7249,c9901f14-e3e3-11f1-8770-56e2e0e75456:1-3487,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820"
+    },
+    {
+      "name": "replay the binlog archive on mysql-1",
+      "ms": 11076.699,
+      "detail": "read 10 of 16 archived files (6 covered by the backup); replayed 5287a1a2-e3e4-11f1-be10-9661e3083821:1983-3148"
+    },
+    {
+      "name": "start Redis, agents, coordinators, router",
+      "ms": 6981.882
+    },
+    {
+      "name": "coordinator rebuilds the topology and promotes",
+      "ms": 5963.448,
+      "detail": "primary mysql-1, epoch 9"
+    },
+    {
+      "name": "replicas catch up; writes acknowledged",
+      "ms": 3741.222,
+      "detail": "3/3 nodes healthy"
+    }
+  ],
+  "restore_ms": 46754.12,
+  "acked_before_disaster": 2548,
+  "acked_lost": 0,
+  "replayed_gtids": "5287a1a2-e3e4-11f1-be10-9661e3083821:1983-3148",
+  "payload_checksum_before": "2527865678",
+  "payload_checksum_after": {
+    "mysql-1": "2527865678",
+    "mysql-2": "2527865678",
+    "mysql-3": "2527865678"
+  },
+  "payload_match": true,
+  "consistent": true,
+  "checksum": "app.writes checksum 2866226712 on all 3 nodes"
+}

@@ -1,0 +1,65 @@
+{
+  "kind": "drill",
+  "commit": "731eeb1-dirty",
+  "started_at": "2026-11-19T06:37:07.50191618Z",
+  "finished_at": "2026-11-19T06:39:38.099885332Z",
+  "dataset_mib": 5624.5469,
+  "backup": {
+    "backup": "20261119T063724Z",
+    "bytes": 6054068101,
+    "gtid_executed_after": "176ac4d8-e3e3-11f1-8062-6aaa6aab5b99:1-3170,2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:1-2026,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-7249,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820",
+    "gtid_executed_before": "176ac4d8-e3e3-11f1-8062-6aaa6aab5b99:1-3170,2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:1-1745,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-7249,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820",
+    "method": "CLONE LOCAL DATA DIRECTORY",
+    "source": "mysql-2",
+    "took_ms": 7530
+  },
+  "writes_after_backup_for": "20s",
+  "restore_phases": [
+    {
+      "name": "copy the backup into 3 fresh volumes (parallel)",
+      "ms": 14028.914
+    },
+    {
+      "name": "start MySQL on the restored data",
+      "ms": 6093.989
+    },
+    {
+      "name": "clear replication state copied with the backup",
+      "ms": 320.139,
+      "detail": "backup holds 176ac4d8-e3e3-11f1-8062-6aaa6aab5b99:1-3170,2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:1-2015,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-7249,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820"
+    },
+    {
+      "name": "replay the binlog archive on mysql-1",
+      "ms": 30026.414,
+      "detail": "14 files; replayed 6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:2016-3168"
+    },
+    {
+      "name": "start Redis, agents, coordinators, router",
+      "ms": 7354.102
+    },
+    {
+      "name": "coordinator rebuilds the topology and promotes",
+      "ms": 5652.322,
+      "detail": "primary mysql-1, epoch 7"
+    },
+    {
+      "name": "replicas catch up; writes acknowledged",
+      "ms": 5257.329,
+      "detail": "3/3 nodes healthy"
+    }
+  ],
+  "restore_ms": 68735.392,
+  "acked_before_disaster": 2635,
+  "acked_lost": 1,
+  "lost_window_ms": 417.169,
+  "replayed_gtids": "6b0cf99d-e3e3-11f1-8f4e-7edffcb4eab6:2016-3168",
+  "payload_checksum_before": "2527865678",
+  "payload_checksum_after": {
+    "mysql-1": "2527865678",
+    "mysql-2": "2527865678",
+    "mysql-3": "2527865678"
+  },
+  "payload_match": true,
+  "consistent": true,
+  "checksum": "app.writes checksum 3333024526 on all 3 nodes"
+}

@@ -63,6 +63,7 @@ services:
       - ./deploy/mysql/hafo.cnf:/etc/mysql/conf.d/hafo.cnf:ro
       - ./deploy/mysql/initdb:/docker-entrypoint-initdb.d:ro
       - mysql-1-data:/var/lib/mysql
+      - backups:/backups
 
   mysql-2:
     <<: *mysql
@@ -74,6 +75,7 @@ services:
       - ./deploy/mysql/hafo.cnf:/etc/mysql/conf.d/hafo.cnf:ro
       - ./deploy/mysql/initdb:/docker-entrypoint-initdb.d:ro
       - mysql-2-data:/var/lib/mysql
+      - backups:/backups
 
   mysql-3:
     <<: *mysql
@@ -85,6 +87,7 @@ services:
       - ./deploy/mysql/hafo.cnf:/etc/mysql/conf.d/hafo.cnf:ro
       - ./deploy/mysql/initdb:/docker-entrypoint-initdb.d:ro
       - mysql-3-data:/var/lib/mysql
+      - backups:/backups
 
   redis-1:
     <<: *redis
@@ -158,6 +161,40 @@ services:
     command: ["hafo-router"]
     ports: ["127.0.0.1:23306:3306", "127.0.0.1:23307:3307", "127.0.0.1:19300:9100"]
 
+  # Streams the binary log of a healthy replica into the binlogs volume and
+  # follows the cluster through failovers (cmd/hafo-archiver).
+  archiver:
+    build:
+      context: .
+      target: tools
+    image: hafo-tools:local
+    pull_policy: build
+    container_name: hafo-archiver
+    hostname: archiver
+    env_file: deploy/dev.env
+    command: ["hafo-archiver"]
+    ports: ["127.0.0.1:19400:9100"]
+    volumes:
+      - binlogs:/archive
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9100/healthz"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+    networks: [hanet]
+
+  # One-shot tools for restores: `docker compose run --rm tools ...`.
+  tools:
+    profiles: ["tools"]
+    image: hafo-tools:local
+    pull_policy: never
+    env_file: deploy/dev.env
+    entrypoint: []
+    volumes:
+      - backups:/backups
+      - binlogs:/archive
+    networks: [hanet]
+
   prometheus:
     image: prom/prometheus:v3.5.0
     container_name: hafo-prometheus
@@ -186,6 +223,10 @@ networks:
     name: hafo-net
 
 volumes:
+  # Backups and the binlog archive outlive the MySQL volumes: a restore drill
+  # deletes every node's data and rebuilds it from these two.
+  backups:
+  binlogs:
   mysql-1-data:
   mysql-2-data:
   mysql-3-data:

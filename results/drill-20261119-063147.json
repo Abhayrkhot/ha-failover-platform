@@ -1,0 +1,65 @@
+{
+  "kind": "drill",
+  "commit": "731eeb1-dirty",
+  "started_at": "2026-11-19T06:31:47.282461208Z",
+  "finished_at": "2026-11-19T06:34:31.845948752Z",
+  "dataset_mib": 4956.2969,
+  "backup": {
+    "backup": "20261119T063224Z",
+    "bytes": 6041829257,
+    "gtid_executed_after": "2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-6105,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820",
+    "gtid_executed_before": "2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-5829,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820",
+    "method": "CLONE LOCAL DATA DIRECTORY",
+    "source": "mysql-2",
+    "took_ms": 8720
+  },
+  "writes_after_backup_for": "20s",
+  "restore_phases": [
+    {
+      "name": "copy the backup into 3 fresh volumes (parallel)",
+      "ms": 13729.54
+    },
+    {
+      "name": "start MySQL on the restored data",
+      "ms": 6186.914
+    },
+    {
+      "name": "clear replication state copied with the backup",
+      "ms": 378.322,
+      "detail": "backup holds 2c65f612-e3e2-11f1-9704-e670b3102161:1-2724,44e6d3cd-e3e1-11f1-8b8d-1ed7dd15a4e9:1-1778,8b14f715-e3e2-11f1-b873-8a4e8041b77d:1-6097,d457de7e-e3e1-11f1-bfac-fe47a42cf5d7:1-3820"
+    },
+    {
+      "name": "replay the binlog archive on mysql-1",
+      "ms": 25523.456,
+      "detail": "12 files; replayed 8b14f715-e3e2-11f1-b873-8a4e8041b77d:6098-7249"
+    },
+    {
+      "name": "start Redis, agents, coordinators, router",
+      "ms": 7341.048
+    },
+    {
+      "name": "coordinator rebuilds the topology and promotes",
+      "ms": 5353.585,
+      "detail": "primary mysql-1, epoch 5"
+    },
+    {
+      "name": "replicas catch up; writes acknowledged",
+      "ms": 3638.603,
+      "detail": "3/3 nodes healthy"
+    }
+  ],
+  "restore_ms": 62151.593,
+  "acked_before_disaster": 3212,
+  "acked_lost": 1,
+  "lost_window_ms": 482.021,
+  "replayed_gtids": "8b14f715-e3e2-11f1-b873-8a4e8041b77d:6098-7249",
+  "payload_checksum_before": "2527865678",
+  "payload_checksum_after": {
+    "mysql-1": "2527865678",
+    "mysql-2": "2527865678",
+    "mysql-3": "2527865678"
+  },
+  "payload_match": true,
+  "consistent": true,
+  "checksum": "app.writes checksum 1561744019 on all 3 nodes"
+}

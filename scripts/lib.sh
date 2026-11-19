@@ -34,6 +34,31 @@ committed = [k for k, n in seen.items() if n >= 2 and k[1] == "ok"]
 print(max(committed)[2] if committed else "")'
 }
 
+# healthy_replica_from_redis — a node whose majority-held health record says
+# healthy replica (first by name), or nothing.
+healthy_replica_from_redis() {
+  for n in "${NODES[@]}"; do
+    for i in 1 2 3; do
+      printf '%s\t%s\n' "$n" "$(docker exec "hafo-redis-$i" redis-cli GET "hafo:health:$n" 2>/dev/null || true)"
+    done
+  done | python3 -I -c '
+import collections, json, sys
+votes = collections.Counter()
+for line in sys.stdin:
+    node, _, raw = line.rstrip("\n").partition("\t")
+    try:
+        r = json.loads(raw)
+    except ValueError:
+        continue
+    if r.get("healthy") and r.get("role") == "replica":
+        votes[node] += 1
+ok = sorted(n for n, v in votes.items() if v >= 2)
+print(ok[0] if ok else "")'
+}
+
+# now_ms — wall clock in milliseconds (macOS date has no %N).
+now_ms() { python3 -I -c 'import time; print(int(time.time() * 1000))'; }
+
 # wait_for NODE SECONDS QUERY  — poll until QUERY returns "1".
 wait_for() {
   local node=$1 secs=$2 query=$3 i

@@ -21,6 +21,8 @@ const usage = `usage:
   hafoctl bench detect [flags]    time fault -> detection for one replica
   hafoctl bench failover [flags]  fail the primary under write load; time recovery, check acked writes
   hafoctl e2e [-only a,b]         scenario suite with pass/fail assertions (breaks and repairs the cluster)
+  hafoctl seed [-mib 1024]        load app.payload with random rows through the router
+  hafoctl drill [flags]           destroy the database tier, restore it from backup + binlog archive, time it
 `
 
 var (
@@ -43,6 +45,10 @@ func main() {
 		err = runFailover(ctx, args[2:])
 	case len(args) >= 1 && args[0] == "e2e":
 		err = runE2E(ctx, args[1:])
+	case len(args) >= 1 && args[0] == "seed":
+		err = runSeed(ctx, args[1:])
+	case len(args) >= 1 && args[0] == "drill":
+		err = runDrill(ctx, args[1:])
 	default:
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(2)

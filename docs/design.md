@@ -393,6 +393,110 @@ and leader and primary dying together. All 12 pass
   router read, so nobody treats the node as a writable stray during the
   copy. The restart restores the persisted `super_read_only`.
 
+## Backup and restore (M4)
+
+**Backups** (`make backup`, `scripts/backup.sh`) are hot physical copies made
+with MySQL Clone: `CLONE LOCAL DATA DIRECTORY` on a healthy replica, so the
+primary's I/O is left alone. The copy goes into a `backups` volume that
+every MySQL node mounts and that outlives their data volumes. Each backup
+is a directory plus a JSON file recording the source, size, duration and
+the GTID sets on either side of the snapshot. The newest `KEEP` (3) are kept.
+
+**The binlog archive** (`cmd/hafo-archiver`) runs `mysqlbinlog --raw
+--stop-never` against a healthy replica and writes the stream into a
+`binlogs` volume, one directory per source `server_uuid`. It keeps the same
+source while it stays healthy, switches when it doesn't, and after a
+restart re-fetches the newest, possibly partial, file. It archives a
+*replica* on purpose. A primary's binlog can hold a commit that no replica
+ever acknowledged (the errant rows of M3), and replaying the archive must
+never bring back data the cluster threw away. The cost is RPO: a write
+acknowledged into a replica's relay log but not yet applied is not in the
+archive yet.
+
+**The restore drill** (`make drill`, `hafoctl drill`) proves both:
+
+1. Take a backup, then keep writing through the router (20s by default) so
+   the restore has to roll forward.
+2. Disaster: kill all three MySQL nodes at once, delete their data volumes,
+   and remove Redis and every platform container. Only `backups` and
+   `binlogs` survive.
+3. Restore, timed from here:
+   - Copy the backup into three fresh volumes in parallel. Drop `auto.cnf`,
+     so each node generates its own `server_uuid`.
+   - Start MySQL, and clear the replication state the copy carried over from
+     the replica it was taken on.
+   - On one node, replay the archive oldest source first, through
+     `mysqlbinlog --exclude-gtids=<the backup's GTID set>`. That skips
+     what the backup already holds without decoding it, and the server
+     auto-skips anything else already applied. Per-commit fsyncs are off
+     during the replay; nobody is served from that node yet.
+   - Start the platform. The coordinator finds no topology, rebuilds it from
+     the epoch history inside the restored data, and promotes the most
+     advanced node, the one that replayed the archive. The other two catch
+     up by replication.
+4. Verify:
+   - every write acknowledged before the disaster is back (RPO in writes,
+     and how far back the loss reaches);
+   - the seeded `app.payload` checksum on all three nodes equals its
+     pre-disaster value;
+   - all three nodes hold identical `app.writes`.
+
+Results (Linux box, NVMe; one JSON report per drill in `results/drill-*`):
+
+| Dataset (InnoDB data + index) | Backup (size / time) | Restore, empty → 3 healthy nodes serving | Acked writes lost |
+|---|---|---|---|
+| 0.2 GiB | 0.3 GiB / 0.6s | 35.7s | 0 of 759 |
+| 1.4 GiB (2 drills) | 1.5 GiB / 1.1–2.6s | 44.0s, 45.0s | 1 of 2,322; 0 of 1,981 |
+| 5.5 GiB (3 drills, before the replay fix below) | 5.6 GiB / 6.6–8.7s | 62.2s, 64.8s, 68.7s | 1, 1, 1 |
+| **5.5 GiB (3 drills, final)** | **5.6 GiB / 6.3–7.9s** | **51.3s, 46.8s, 49.5s** | **0, 0, 1** |
+
+Where the time goes at 5.5 GiB (final drills):
+
+| Phase | Time |
+|---|---|
+| Copy the backup into 3 volumes in parallel | 12.2–13.2s |
+| Start MySQL on the restored data | 6.1s |
+| Replay the archive (~1,170 transactions written after the backup) | 10.7–12.9s |
+| Start Redis (4s delayed start), agents, coordinators, router | 7.0–9.2s |
+| Coordinator: topology-lost wait (5s) + promotion | 5.5–6.0s |
+| Replicas catch up, writes acknowledged | 3.7–6.0s |
+
+- **Restore is linear in data size only where it has to be.** Only the copy
+  and the MySQL start depend on the dataset; the rest is fixed cost.
+- **The data checks passed in every drill they ran in.**
+  - After every drill, `app.writes` was identical on all three nodes.
+  - In all 7 drills run with the fixed checksum, the seeded payload's checksum
+    on all three nodes equals its value before the disaster.
+- **RPO is 0 or 1 acknowledged write**, and the lost one was always written
+  in the last ~0.4–0.5s before the disaster. That is the cost of archiving a
+  replica (see above). Inside the cluster, failover RPO is 0 (semi-sync); the
+  archive trades half a second for never resurrecting an unacknowledged write.
+
+## Findings in M4
+
+- **Replay time grew with the archive, not with the work.**
+  `--exclude-gtids` skips old transactions but still reads every file, and
+  the archive held every past source plus the 3 GiB seed. Replay rose from
+  25s to 30s across three drills that each rolled forward the same ~1,150
+  transactions. The replay now skips whole files by their `Previous-GTIDs`
+  header: a file is skipped if the next one starts from a GTID set the backup
+  already holds. Replay fell to 11–13s and the restore from ~65s to ~49s.
+  What remains is the last file of each dead source, which retention pruning
+  of the archive (not built) would remove.
+- **A checksum that timed out read as 0.** `CHECKSUM TABLE` on 1.4 GiB
+  outlasted the harness connection's 5s read timeout. The helper swallowed
+  the error, and one drill reported a payload "mismatch" between a real
+  checksum and that 0. Checksums now run through the `mysql` client inside
+  the container, errors fail the drill, and the payload is compared on all
+  three nodes.
+- **The official image has no `mysqlbinlog`.** The client package conflicts
+  with the image's server-minimal package. The tools image extracts just
+  `mysqlbinlog` from MySQL's signed RPM, checking the signature against the
+  key the image already trusts.
+- **`information_schema` caches table sizes for a day**
+  (`information_schema_stats_expiry`), so a freshly seeded table reported
+  0 MiB. Sizes are read with the expiry set to 0 on the same session.
+
 ## Behaviors found in M0 that shape later milestones
 
 - **A timed-out write can still commit.** With semi-sync AFTER_SYNC, a
@@ -419,7 +523,7 @@ and leader and primary dying together. All 12 pass
 | Recover service within 5s | `hafoctl bench failover`: break the primary under write load through the router; time from fault to first write acknowledged by the new primary | **Measured (M3):** 30/30 primary failures recovered, p50 2.49s, max 2.87s ([report](../results/failover-20261119-055014.json)) |
 | No split brain in 30 injected failures | Same campaign (kill, pause, partition; plus 10 coordinator-leader kills mid-promotion). Per trial: no acked write lost, client never saw two primaries, rows only the old primary had were never acked, one epoch per fault, checksums equal on all nodes | **Measured (M3):** 0 violations of any invariant across 30 + 10 failures; 0 of 21,451 acked writes lost; 0 failovers in 10 control trials |
 | Detect unhealthy replica within 2s | `hafoctl bench detect`: pause, kill, partition, stopped applier, stalled applier, plus control trials; time to "unhealthy" on the Redis majority and to the alert firing | **Measured (M3 re-run, Linux box):** 50/50 detected; agent max 0.92s, alert max 1.23s; 0/10 control false positives ([report](../results/detect-20261119-060340.json)). M1 on the overloaded Mac: agent max 1.31s, alert max 1.98s ([report](../results/detect-20261118-191421.json)) |
-| Restore under 90s across 3 nodes | Wipe all volumes, restore primary from backup + binlogs, rebuild replicas with Clone, compare checksums | Per-phase timings at a stated dataset size |
+| Restore under 90s across 3 nodes | `hafoctl drill`: Clone backup of a replica, keep writing, then kill all 3 nodes and delete their data and Redis; restore all 3 from the backup, replay the binlog archive, let the coordinator rebuild the topology; verify acked writes, payload checksums on all 3 nodes, consistency | **Measured (M4):** 5.5 GiB restored onto 3 nodes in 46.8–51.3s (3 drills); 0–1 acked writes lost (the last ~0.5s); checksums identical on all nodes ([reports](../results/)) |
 
 The numbers in the resume are targets until these runs produce them; the
 resume quotes what was measured.
@@ -440,7 +544,7 @@ resume quotes what was measured.
       kills, 0 invariant violations, recovery max 2.87s. Safe fencing
       (`offline_mode`), divergence check before rebuilds, Clone-based
       rebuild. (Self-fencing itself landed in M2.)
-- [ ] **M4** Backups (Bash + Go), binlog archiving, timed restore drills.
-      (Clone for rebuilding a single node already landed in M3.)
+- [x] **M4** Backups (Clone, Bash), binlog archive of a replica (Go),
+      restore drill (Go): 5.5 GiB onto 3 nodes in ~49s, RPO ≤1 acked write.
 - [ ] **M5** Results write-up, Grafana dashboard, trade-offs (vs Orchestrator,
       Group Replication).

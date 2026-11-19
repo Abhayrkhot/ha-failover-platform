@@ -4,10 +4,12 @@ Failover coordinator for a 3-node MySQL cluster, written in Go: Redis-majority
 health state and leases, layered fencing against split brain, Prometheus
 metrics, chaos testing, and timed backup/restore drills.
 
-Status: **M3**. The cluster, health agents, coordinators and router are
-done, plus a chaos campaign: 30 primary failures, recovered in 2.49s p50 and
-2.87s max, with 0 acknowledged writes lost and 0 split-brain invariant
-violations. Backup and restore drills (M4) are next. See
+Status: **M4**. Built so far:
+- the cluster, health agents, coordinators and router;
+- a chaos campaign: 30 primary failures recovered in 2.49s p50 and 2.87s
+  max, with 0 acknowledged writes lost and 0 split-brain invariant violations;
+- backup and restore drills: 5.5 GiB restored onto three nodes from nothing
+  in ~49s, losing at most one acknowledged write. See
 [docs/design.md](docs/design.md) for the architecture, fencing model,
 budgets, findings and milestone plan, and
 [docs/interview-notes.md](docs/interview-notes.md) for the claims, the
@@ -26,6 +28,9 @@ make e2e             # 12 scenarios that break and repair the cluster; ARGS=-onl
 make bench-failover  # fail the primary under write load, check split-brain invariants; ARGS=-trials=3
 make bench-detect    # break a replica repeatedly, time detection; ARGS=-trials=3
 make rebuild NODE=mysql-1  # replace a fenced node holding errant transactions with a Clone of the primary
+make seed ARGS=-mib=1024   # load app.payload with random rows (so backups have something to move)
+make backup          # hot physical backup (Clone) of a healthy replica into the backups volume
+make drill           # DESTROYS all MySQL data and Redis, restores from backup + binlog archive, times it
 make clean           # stop and delete all data
 ```
 
@@ -52,6 +57,7 @@ in the design doc for why that check exists.
 | redis-1 / 2 / 3 | 127.0.0.1:63791 / 63792 / 63793 | No persistence; health records carry a 1.5s TTL |
 | coordinator-1 / 2 / 3 | 127.0.0.1:19201 / 19202 / 19203 | One leads (3s lease on the Redis majority); `/status` shows its view |
 | router | 127.0.0.1:23306 / 23307, metrics 19300 | Writes to the committed primary, reads to healthy replicas |
+| archiver | 127.0.0.1:19400 | Streams a healthy replica's binlog into the `binlogs` volume (`/status` shows the source) |
 | prometheus | 127.0.0.1:19090 | 250ms scrape and rule evaluation; alerts in `deploy/prometheus/rules.yml` |
 
 Users (created on each node with `sql_log_bin=0`, passwords in
@@ -64,23 +70,50 @@ Users (created on each node with `sql_log_bin=0`, passwords in
 cmd/hafo-agent/            per-node agent: probe, verdict, heartbeat, primary lease, self-fencing, metrics
 cmd/hafo-coordinator/      leader election, failure detection, promotion, fencing, rejoin
 cmd/hafo-router/           TCP proxy that follows the committed topology
-cmd/hafoctl/               host-side CLI: `health`, `bench detect`, `bench failover`, `e2e`
+cmd/hafo-archiver/         binlog archive of a healthy replica, following failovers
+cmd/hafoctl/               host-side CLI: `health`, `bench detect`, `bench failover`, `e2e`, `seed`, `drill`
 internal/cluster/          topology, leases and failover records on the Redis majority (Lua CAS)
 internal/coordinator/      detector, candidate choice, failover, reconcile loop
 internal/router/           proxying, switching and refusing write connections
+internal/archiver/         source choice and mysqlbinlog supervision
 internal/mysqlx/           the shared probe and fence
 internal/health/           observation -> debounced verdict; the published record
 internal/store/            parallel reads/writes across the Redis instances, quorum math
-compose.yaml, Dockerfile   nodes, network, volumes; one image with all three binaries
+compose.yaml, Dockerfile   nodes, network, volumes; the Go image, and a tools image (MySQL + mysqlbinlog)
 deploy/mysql/              replication/durability/semi-sync settings, first-boot users
 deploy/prometheus/         scrape config (250ms), alert rules
 deploy/nettools/           alpine + tc/iptables, run in a node's netns
-scripts/                   bootstrap, status, rebuild (Clone), prom-reload, netem check
+scripts/                   bootstrap, status, backup and rebuild (Clone), prom-reload, netem check
 results/                   JSON reports from benchmark runs
 docs/design.md             architecture, fencing, budgets, findings, claims -> experiments
 ```
 
 ## Results
+
+### Restore from total loss (M4)
+
+`make drill`, run 2026-11-19 on the Linux box (NVMe), reports in
+[results/](results/) (`drill-*.json`). Each drill:
+1. takes a Clone backup of a replica and keeps writing for 20s;
+2. kills all three MySQL nodes, deletes their data volumes, and wipes Redis
+   and the platform;
+3. restores everything from the backup plus the binlog archive.
+
+| Dataset | Backup | Restore, empty → 3 healthy nodes serving writes | Acked writes lost |
+|---|---|---|---|
+| 1.4 GiB | 1.5 GiB in 1–3s | 44.0s, 45.0s | 1 of 2,322; 0 of 1,981 |
+| **5.5 GiB** | 5.6 GiB in 6–8s | **51.3s, 46.8s, 49.5s** | 0, 0, 1 |
+
+- After every drill, all three nodes held identical data. In all seven drills
+  with the fixed check, the seeded payload's checksum matched its
+  pre-disaster value on every node.
+- The lost write, when there is one, was acknowledged in the last ~0.5s
+  before the disaster. The archive streams from a replica, so a restore can
+  never bring back a write the cluster discarded; the price is that half
+  second.
+- About 25s of each restore is fixed cost: MySQL start, Redis's delayed
+  start, the coordinator's 5s topology-lost wait, catch-up. Only the copy
+  (~12s at 5.5 GiB) grows with the data.
 
 ### Failover and split brain (M3)
 
