@@ -35,7 +35,7 @@ want_rules=$(docker exec hafo-prometheus promtool check rules /etc/prometheus/ru
 # Every hafo target listed in prometheus.yml (Prometheus scraping itself aside).
 want_targets=$(grep -oE '"[a-z0-9-]+:[0-9]+"' "$ROOT/deploy/prometheus/prometheus.yml" | grep -vc localhost)
 
-for _ in $(seq 20); do
+for _ in $(seq 40); do
   read -r rules up < <(python3 - "$PROM" <<'EOF'
 import json, sys, urllib.request
 base = sys.argv[1]

@@ -4,7 +4,7 @@ COMPOSE := docker compose
 include deploy/dev.env
 export MYSQL_ROOT_PASSWORD APP_PASSWORD
 
-.PHONY: up bootstrap status health test e2e bench-detect bench-failover seed backup drill rebuild prom-reload netem-check logs down clean
+.PHONY: up bootstrap status health test e2e bench-detect bench-failover seed backup drill rebuild screenshot prom-reload netem-check logs down clean
 
 up:            ## build agents, start everything, wait until healthy
 	$(COMPOSE) up -d --wait --build
@@ -41,6 +41,9 @@ backup:        ## hot physical backup (Clone) of a healthy replica into the back
 
 rebuild:       ## replace a fenced node's data and let the coordinator rejoin it; NODE=mysql-1
 	scripts/rebuild.sh $(NODE)
+
+screenshot:    ## render the Grafana dashboard to docs/img/dashboard.png; MINUTES=10
+	scripts/screenshot.sh $(MINUTES)
 
 prom-reload:   ## apply deploy/prometheus edits; verify rules and agent targets
 	scripts/prom-reload.sh

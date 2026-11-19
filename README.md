@@ -4,16 +4,27 @@ Failover coordinator for a 3-node MySQL cluster, written in Go: Redis-majority
 health state and leases, layered fencing against split brain, Prometheus
 metrics, chaos testing, and timed backup/restore drills.
 
-Status: **M4**. Built so far:
+Status: **complete (M0–M5)**. Built:
 - the cluster, health agents, coordinators and router;
 - a chaos campaign: 30 primary failures recovered in 2.49s p50 and 2.87s
   max, with 0 acknowledged writes lost and 0 split-brain invariant violations;
 - backup and restore drills: 5.5 GiB restored onto three nodes from nothing
-  in ~49s, losing at most one acknowledged write. See
+  in ~49s, losing at most one acknowledged write;
+- a Grafana dashboard over all of it. See
 [docs/design.md](docs/design.md) for the architecture, fencing model,
-budgets, findings and milestone plan, and
+budgets, findings and milestone plan;
 [docs/interview-notes.md](docs/interview-notes.md) for the claims, the
-evidence behind each, and the limitations.
+evidence behind each, and the limitations; and
+[docs/tradeoffs.md](docs/tradeoffs.md) for how this compares with
+Orchestrator, Group Replication and Vitess.
+
+![Grafana dashboard during three failovers (kill, pause, partition of the primary)](docs/img/dashboard.png)
+
+*The Grafana dashboard (`http://127.0.0.1:19500`) during three failovers
+(crash, hang, partition). Visible: the primary role moving between nodes,
+lag spikes, write connections refused while each promotion ran, the woken
+old primaries fencing themselves (`stray`), one errant rejoin and its
+rebuild. Re-render with `make screenshot`.*
 
 ## Quickstart
 
@@ -59,6 +70,7 @@ in the design doc for why that check exists.
 | router | 127.0.0.1:23306 / 23307, metrics 19300 | Writes to the committed primary, reads to healthy replicas |
 | archiver | 127.0.0.1:19400 | Streams a healthy replica's binlog into the `binlogs` volume (`/status` shows the source) |
 | prometheus | 127.0.0.1:19090 | 250ms scrape and rule evaluation; alerts in `deploy/prometheus/rules.yml` |
+| grafana | 127.0.0.1:19500 | Provisioned dashboard `HA failover platform` (anonymous viewer; lab only) |
 
 Users (created on each node with `sql_log_bin=0`, passwords in
 [deploy/dev.env](deploy/dev.env), lab use only): `repl` (replication), `hafo`
@@ -82,10 +94,13 @@ internal/store/            parallel reads/writes across the Redis instances, quo
 compose.yaml, Dockerfile   nodes, network, volumes; the Go image, and a tools image (MySQL + mysqlbinlog)
 deploy/mysql/              replication/durability/semi-sync settings, first-boot users
 deploy/prometheus/         scrape config (250ms), alert rules
+deploy/grafana/            provisioned datasource and dashboard
 deploy/nettools/           alpine + tc/iptables, run in a node's netns
 scripts/                   bootstrap, status, backup and rebuild (Clone), prom-reload, netem check
 results/                   JSON reports from benchmark runs
 docs/design.md             architecture, fencing, budgets, findings, claims -> experiments
+docs/interview-notes.md    each claim with its evidence; likely questions; limitations
+docs/tradeoffs.md          vs Orchestrator, Group Replication, Vitess; costs of each decision
 ```
 
 ## Results

@@ -497,6 +497,17 @@ Where the time goes at 5.5 GiB (final drills):
   (`information_schema_stats_expiry`), so a freshly seeded table reported
   0 MiB. Sizes are read with the expiry set to 0 on the same session.
 
+## Findings in M5
+
+- **Grafana's `$__rate_interval` breaks with a sub-second scrape interval.**
+  With `timeInterval: 250ms`, Grafana 11.5 renders it as decimal seconds,
+  for example `rate(x[1.165s])`. Prometheus rejects that ("unknown unit
+  '.'"), so a panel failed or rendered depending on its width and time
+  range. The dashboard uses fixed `[5s]` windows (20 scrapes) instead.
+- **The role and health timelines rendered all grey** with colors set only
+  in their value mappings, under the "thresholds" color mode. Giving each
+  value a threshold color fixed it; the mappings still supply the labels.
+
 ## Behaviors found in M0 that shape later milestones
 
 - **A timed-out write can still commit.** With semi-sync AFTER_SYNC, a
@@ -546,5 +557,6 @@ resume quotes what was measured.
       rebuild. (Self-fencing itself landed in M2.)
 - [x] **M4** Backups (Clone, Bash), binlog archive of a replica (Go),
       restore drill (Go): 5.5 GiB onto 3 nodes in ~49s, RPO ≤1 acked write.
-- [ ] **M5** Results write-up, Grafana dashboard, trade-offs (vs Orchestrator,
-      Group Replication).
+- [x] **M5** Grafana dashboard (provisioned, 22 panels, `make screenshot`),
+      [trade-offs](tradeoffs.md), [interview notes](interview-notes.md),
+      results in the README.

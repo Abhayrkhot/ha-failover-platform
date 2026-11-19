@@ -210,6 +210,34 @@ services:
       - prometheus-data:/prometheus
     networks: [hanet]
 
+  # Dashboard: provisioned datasource and dashboard (deploy/grafana), open to
+  # anonymous viewers because this is a local lab. http://127.0.0.1:19500
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: hafo-grafana
+    hostname: grafana
+    ports: ["127.0.0.1:19500:3000"]
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_SECURITY_ADMIN_PASSWORD: hafo-grafana-dev
+      GF_DASHBOARDS_MIN_REFRESH_INTERVAL: 1s
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /var/lib/grafana/dashboards/hafo.json
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+    volumes:
+      - ./deploy/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./deploy/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks: [hanet]
+
+  # Renders dashboard PNGs (make screenshot). Not started by `up`.
+  renderer:
+    profiles: ["screenshots"]
+    image: grafana/grafana-image-renderer:3.12.1
+    container_name: hafo-renderer
+    hostname: renderer
+    networks: [hanet]
+
   # Not started by `up`. Built once, then run in a node's network namespace
   # (docker run --network container:hafo-mysql-2 ...) to shape or cut traffic
   # without installing tc/iptables in the MySQL image.
