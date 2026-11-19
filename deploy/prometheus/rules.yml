@@ -55,3 +55,26 @@ groups:
         labels: {severity: critical}
         annotations:
           summary: "agent {{ $labels.instance }} is not being scraped"
+
+  - name: hafo-cluster
+    rules:
+      # Fires for the few seconds of every failover, and stays firing if a
+      # promotion is stuck. Writes are unavailable while it fires.
+      - alert: HafoNoWritablePrimary
+        expr: hafo_router_serving == 0
+        labels: {severity: critical}
+        annotations:
+          summary: "router has no primary to send writes to"
+
+      - alert: HafoNoCoordinatorLeader
+        expr: max(hafo_coordinator_leader) == 0 or absent(hafo_coordinator_leader)
+        for: 5s
+        labels: {severity: critical}
+        annotations:
+          summary: "no coordinator holds the leader lease: nothing will fail over"
+
+      - alert: HafoErrantNode
+        expr: max(hafo_coordinator_errant_nodes) > 0
+        labels: {severity: warning}
+        annotations:
+          summary: "a node holds transactions the primary lacks and is fenced; rebuild it (make rebuild NODE=...)"

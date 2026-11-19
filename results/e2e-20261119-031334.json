@@ -1,0 +1,15 @@
+{
+  "kind": "e2e",
+  "commit": "6b52a2c-dirty",
+  "started_at": "2026-11-19T03:13:34.941341286Z",
+  "finished_at": "2026-11-19T03:16:35.034200718Z",
+  "scenarios": [
+    {
+      "name": "steady",
+      "what": "no faults: routing, leadership and writes behave",
+      "checks": null,
+      "seconds": 180.09284276099999,
+      "error": "not steady before the scenario: cluster not healthy with writes flowing within 3m0s"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 name: hafo
 
-# Three "nodes", each a MySQL + Redis + agent trio on one bridge network. The
-# coordinator and router (M2) join this file later. Container names are fixed
-# so chaos tooling can target them directly (docker pause hafo-mysql-1).
+# Three "nodes", each a MySQL + Redis + agent trio on one bridge network, plus
+# three coordinators (one leads) and a router. Container names are fixed so
+# chaos tooling can target them directly (docker pause hafo-mysql-1).
 
 x-mysql: &mysql
   image: mysql:8.4.13
@@ -24,8 +24,12 @@ x-mysql: &mysql
 
 x-redis: &redis
   image: redis:7.4.9-alpine
-  # Health records and leases are ephemeral by design (see docs/design.md).
-  command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb"]
+  # No persistence: health records, leases and the topology are rebuilt by
+  # their writers. A Redis that restarts empty must not vote until every lease
+  # it might have held has expired, or a second coordinator could win a
+  # majority while the first still leads; so it sleeps longer than the
+  # longest lease TTL (leader: 3s) before starting ("delayed restart").
+  command: ["sh", "-c", "sleep 4 && exec redis-server --save '' --appendonly no --maxmemory 64mb"]
   healthcheck:
     test: ["CMD", "redis-cli", "ping"]
     interval: 2s
@@ -35,10 +39,10 @@ x-redis: &redis
 
 # The agent is its own container, not a process inside the MySQL container:
 # pausing or killing MySQL must not silence the thing that reports it.
-x-agent: &agent
-  # Built once by agent-1; the other two reuse the tag (parallel builds of the
-  # same tag collide).
-  image: hafo-agent:local
+x-hafo: &hafo
+  # One image for agent, coordinator and router, built once by agent-1; the
+  # other services reuse the tag (parallel builds of the same tag collide).
+  image: hafo:local
   pull_policy: never
   env_file: deploy/dev.env
   healthcheck:
@@ -101,29 +105,58 @@ services:
     ports: ["127.0.0.1:63793:6379"]
 
   agent-1:
-    <<: *agent
+    <<: *hafo
     build:
       context: .
-      target: agent
+      target: hafo
     pull_policy: build
     container_name: hafo-agent-1
     hostname: agent-1
-    command: ["-node=mysql-1", "-mysql-addr=mysql-1:3306"]
+    command: ["hafo-agent", "-node=mysql-1", "-mysql-addr=mysql-1:3306"]
     ports: ["127.0.0.1:19101:9100"]
 
   agent-2:
-    <<: *agent
+    <<: *hafo
     container_name: hafo-agent-2
     hostname: agent-2
-    command: ["-node=mysql-2", "-mysql-addr=mysql-2:3306"]
+    command: ["hafo-agent", "-node=mysql-2", "-mysql-addr=mysql-2:3306"]
     ports: ["127.0.0.1:19102:9100"]
 
   agent-3:
-    <<: *agent
+    <<: *hafo
     container_name: hafo-agent-3
     hostname: agent-3
-    command: ["-node=mysql-3", "-mysql-addr=mysql-3:3306"]
+    command: ["hafo-agent", "-node=mysql-3", "-mysql-addr=mysql-3:3306"]
     ports: ["127.0.0.1:19103:9100"]
+
+  coordinator-1:
+    <<: *hafo
+    container_name: hafo-coordinator-1
+    hostname: coordinator-1
+    command: ["hafo-coordinator", "-id=coordinator-1"]
+    ports: ["127.0.0.1:19201:9100"]
+
+  coordinator-2:
+    <<: *hafo
+    container_name: hafo-coordinator-2
+    hostname: coordinator-2
+    command: ["hafo-coordinator", "-id=coordinator-2"]
+    ports: ["127.0.0.1:19202:9100"]
+
+  coordinator-3:
+    <<: *hafo
+    container_name: hafo-coordinator-3
+    hostname: coordinator-3
+    command: ["hafo-coordinator", "-id=coordinator-3"]
+    ports: ["127.0.0.1:19203:9100"]
+
+  # Clients connect here: 23306 for writes (primary), 23307 for reads.
+  router:
+    <<: *hafo
+    container_name: hafo-router
+    hostname: router
+    command: ["hafo-router"]
+    ports: ["127.0.0.1:23306:3306", "127.0.0.1:23307:3307", "127.0.0.1:19300:9100"]
 
   prometheus:
     image: prom/prometheus:v3.5.0

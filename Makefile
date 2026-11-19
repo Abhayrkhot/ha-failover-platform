@@ -1,10 +1,10 @@
 COMPOSE := docker compose
 
-# Lab credentials, for hafoctl's SQL-level faults.
+# Lab credentials, for hafoctl's checks, faults and write load.
 include deploy/dev.env
-export MYSQL_ROOT_PASSWORD
+export MYSQL_ROOT_PASSWORD APP_PASSWORD
 
-.PHONY: up bootstrap status health test bench-detect prom-reload netem-check logs down clean
+.PHONY: up bootstrap status health test e2e bench-detect bench-failover rebuild prom-reload netem-check logs down clean
 
 up:            ## build agents, start everything, wait until healthy
 	$(COMPOSE) up -d --wait --build
@@ -23,6 +23,15 @@ test:          ## unit tests
 
 bench-detect:  ## break a replica repeatedly and time detection; ARGS=-trials=3
 	go run ./cmd/hafoctl bench detect $(ARGS)
+
+bench-failover: ## fail the primary under write load and time recovery; ARGS=-trials=3
+	go run ./cmd/hafoctl bench failover $(ARGS)
+
+e2e:           ## scenario suite: breaks and repairs the cluster, asserts invariants; ARGS=-only=steady
+	go run ./cmd/hafoctl e2e $(ARGS)
+
+rebuild:       ## replace a fenced node's data and let the coordinator rejoin it; NODE=mysql-1
+	scripts/rebuild.sh $(NODE)
 
 prom-reload:   ## apply deploy/prometheus edits; verify rules and agent targets
 	scripts/prom-reload.sh

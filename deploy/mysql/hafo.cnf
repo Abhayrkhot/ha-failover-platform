@@ -31,6 +31,15 @@ loose_rpl_semi_sync_source_wait_for_replica_count = 1
 # availability (both replicas down => writes block) for no lost acked writes.
 loose_rpl_semi_sync_source_timeout                = 4294967295
 
+# --- A rebuilt node keeps its server_id, and its history must reach it.
+# A node rebuilt from an empty datadir replays the cluster's binlog from the
+# primary, including transactions the previous instance of that node wrote
+# under the same server_id. By default the IO thread drops those as its own
+# events, leaving a hole (Unknown database ha_meta). GTID auto-positioning
+# already prevents loops and duplicates, and the topology is never circular,
+# so the check is redundant here. M4 replaces replay with Clone.
+replicate_same_server_id = ON
+
 # --- Lab sizing (Docker Desktop VM has ~8 GB shared with other clusters).
 innodb_buffer_pool_size = 256M
 max_connections         = 200

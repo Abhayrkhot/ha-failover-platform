@@ -1,0 +1,32 @@
+{
+  "kind": "failover",
+  "commit": "6b52a2c-dirty",
+  "started_at": "2026-11-18T20:07:46.83195-05:00",
+  "finished_at": "2026-11-18T20:08:01.2644-05:00",
+  "write_every": "10ms",
+  "trials": [
+    {
+      "fault": "kill",
+      "n": 1,
+      "started_at": "2026-11-18T20:07:50.357095-05:00",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 2,
+      "recovery_ms": 3452.601,
+      "gap_ms": 3357.363,
+      "coordinator_phases_ms": {
+        "claimed": 1868.218,
+        "lease_expired": 1763.833,
+        "prepared": 1963.952,
+        "published": 2580.446,
+        "writable": 2570.107
+      },
+      "acked": 193,
+      "not_acked": 125,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "served_by_old": 150,
+      "rejoin": "rejoined"
+    }
+  ]
+}

@@ -47,6 +47,10 @@ func (f *fakeKV) Get(ctx context.Context, key string) ([]byte, error) {
 	return f.data[key], nil
 }
 
+func (f *fakeKV) Eval(ctx context.Context, _ string, _ []string, _ ...any) (int64, error) {
+	return 1, f.wait(ctx)
+}
+
 func (f *fakeKV) Close() error { return nil }
 
 func TestQuorum(t *testing.T) {

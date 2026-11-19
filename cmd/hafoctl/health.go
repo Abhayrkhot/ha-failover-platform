@@ -9,6 +9,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/Abhayrkhot/ha-failover-platform/internal/cluster"
 	"github.com/Abhayrkhot/ha-failover-platform/internal/store"
 )
 
@@ -20,6 +21,22 @@ func runHealth(ctx context.Context, args []string) error {
 
 	m := store.NewRedis(split(*redisAddrs), 200*time.Millisecond)
 	defer m.Close()
+
+	if v := cluster.ReadTopology(ctx, m); v.OK {
+		t := v.Committed
+		fmt.Printf("topology  epoch %d, primary %q, state %s (%d/%d copies)", t.Epoch, t.Primary, t.State, v.Holders, m.Size())
+		if t.Reason != "" && t.State != cluster.StateOK {
+			fmt.Printf(", reason: %s", t.Reason)
+		}
+		fmt.Println()
+	} else {
+		fmt.Printf("topology  none committed (%d/%d Redis reachable, max epoch %d)\n", v.Reachable, m.Size(), v.MaxEpoch)
+	}
+	if id, n := cluster.Leader(ctx, m); id != "" {
+		fmt.Printf("leader    %s (%d/%d copies)\n\n", id, n, m.Size())
+	} else {
+		fmt.Printf("leader    none\n\n")
+	}
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
 	fmt.Fprintln(w, "NODE\tROLE\tHEALTHY\tCOPIES\tAGE\tLAG\tREASONS")

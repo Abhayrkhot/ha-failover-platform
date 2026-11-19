@@ -18,7 +18,7 @@ func replica() Observation {
 }
 
 func primary() Observation {
-	return Observation{Reachable: true, SemiSyncSourceEnabled: true, SemiSyncSourceActive: true, SemiSyncClients: 2}
+	return Observation{Reachable: true, SemiSyncSourceEnabled: true, ConnectedReplicas: 2}
 }
 
 func codes(rs []Reason) []string {
@@ -49,7 +49,7 @@ func TestEvaluate(t *testing.T) {
 		}, []string{CodeIOThread, CodeLagHigh}},
 		{"read-only without a source", func() Observation { return Observation{Reachable: true, ReadOnly: true} }, []string{CodeFenced}},
 		{"primary without semi-sync", func() Observation { o := primary(); o.SemiSyncSourceEnabled = false; return o }, []string{CodeSemiSyncOff}},
-		{"primary with no semi-sync replicas", func() Observation { o := primary(); o.SemiSyncClients = 0; return o }, []string{CodeNoSemiSyncPeers}},
+		{"primary with no replicas connected", func() Observation { o := primary(); o.ConnectedReplicas = 0; return o }, []string{CodeNoReplicas}},
 		{"primary with blocked commits", func() Observation { o := primary(); o.BlockedWrites = 1; return o }, []string{CodeWritesBlocked}},
 		{"writable while replicating", func() Observation { o := primary(); o.SourceHost = "mysql-2"; return o }, []string{CodeWritableReplica}},
 	}

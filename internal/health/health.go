@@ -30,8 +30,9 @@ type Observation struct {
 
 	// Source side; meaningful on a writable node.
 	SemiSyncSourceEnabled bool `json:"semi_sync_source_enabled"`
-	SemiSyncSourceActive  bool `json:"semi_sync_source_active"`
-	SemiSyncClients       int  `json:"semi_sync_clients"`
+	// ConnectedReplicas counts replicas streaming from this node. All are
+	// semi-sync, so with none connected no commit can be acknowledged.
+	ConnectedReplicas int `json:"connected_replicas"`
 	// BlockedWrites counts this agent's heartbeat commits parked waiting for a
 	// semi-sync ack: the node is writable but cannot complete commits.
 	BlockedWrites int `json:"blocked_writes"`
@@ -70,7 +71,7 @@ const (
 	CodeFenced          = "fenced"
 	CodeWritableReplica = "writable_with_source"
 	CodeSemiSyncOff     = "semi_sync_source_off"
-	CodeNoSemiSyncPeers = "no_semi_sync_replicas"
+	CodeNoReplicas      = "no_replicas_connected"
 	CodeWritesBlocked   = "writes_blocked"
 	CodeIOThread        = "io_thread_not_running"
 	CodeSQLThread       = "sql_thread_not_running"
@@ -104,8 +105,8 @@ func Evaluate(o Observation, maxLag time.Duration) []Reason {
 		}
 		if !o.SemiSyncSourceEnabled {
 			rs = append(rs, Reason{CodeSemiSyncOff, "acknowledged commits could be lost on failover"})
-		} else if o.SemiSyncClients == 0 {
-			rs = append(rs, Reason{CodeNoSemiSyncPeers, "no replica can acknowledge commits"})
+		} else if o.ConnectedReplicas == 0 {
+			rs = append(rs, Reason{CodeNoReplicas, "no replica can acknowledge commits"})
 		}
 		if o.BlockedWrites > 0 {
 			rs = append(rs, Reason{CodeWritesBlocked, fmt.Sprintf("%d heartbeat commit(s) waiting for a semi-sync ack", o.BlockedWrites)})

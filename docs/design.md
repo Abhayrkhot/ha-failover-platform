@@ -229,7 +229,12 @@ resume quotes what was measured.
       bootstrap, status, netem check, fencing defaults verified.
 - [x] **M1** Agent: probes, heartbeat lag, health to Redis majority, metrics,
       alert rules, detection bench with control trials.
-- [ ] **M2** Coordinator + router: leader lease, detection, promotion, epochs.
+- [x] **M2** Coordinator + router: leader lease, detection, promotion, epochs.
+      Measured: 11/11 e2e scenarios pass ([report](../results/e2e-20261119-033232.json)); kill-primary
+      recovery 2.7-3.5s, 0 acked writes lost.
+      Found in the e2e: Fence now turns semi-sync off to release parked commits (a woken
+      paused primary stayed writable 180s, now 300ms); a node rebuilt by replay needs
+      `replicate_same_server_id` and a serial applier. M4 replaces replay with Clone.
 - [ ] **M3** Self-fencing, chaos harness, invariant checker, 30-trial campaign.
 - [ ] **M4** Backups (Bash + Go), binlog archiving, timed restore drills.
 - [ ] **M5** Results write-up, Grafana dashboard, trade-offs (vs Orchestrator,

@@ -1,0 +1,15 @@
+{
+  "kind": "e2e",
+  "commit": "6b52a2c-dirty",
+  "started_at": "2026-11-19T03:10:26.828745081Z",
+  "finished_at": "2026-11-19T03:13:26.847638606Z",
+  "scenarios": [
+    {
+      "name": "primary-hang",
+      "what": "the primary freezes (docker pause) and later wakes up",
+      "checks": null,
+      "seconds": 180.018879638,
+      "error": "not steady before the scenario: cluster not healthy with writes flowing within 3m0s"
+    }
+  ]
+}

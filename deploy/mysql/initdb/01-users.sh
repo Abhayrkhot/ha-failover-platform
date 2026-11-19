@@ -18,11 +18,12 @@ SET SESSION sql_log_bin = 0;
 CREATE USER 'repl'@'%' IDENTIFIED BY '${REPL_PASSWORD}';
 GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
 
--- Agent / coordinator: probe health, flip read_only, repoint replication,
--- kill client connections on a fenced node, write the heartbeat row.
+-- Agent / coordinator: probe health, flip read_only, repoint replication
+-- (RESET REPLICA needs RELOAD), kill client connections on a fenced node,
+-- write the heartbeat and epoch rows.
 CREATE USER 'hafo'@'%' IDENTIFIED BY '${HAFO_PASSWORD}';
 GRANT REPLICATION CLIENT, REPLICATION_SLAVE_ADMIN, SYSTEM_VARIABLES_ADMIN,
-      CONNECTION_ADMIN, PROCESS ON *.* TO 'hafo'@'%';
+      CONNECTION_ADMIN, PROCESS, RELOAD ON *.* TO 'hafo'@'%';
 GRANT SELECT ON performance_schema.* TO 'hafo'@'%';
 GRANT SELECT, INSERT, UPDATE, DELETE ON ha_meta.* TO 'hafo'@'%';
 

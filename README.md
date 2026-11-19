@@ -4,7 +4,7 @@ Failover coordinator for a 3-node MySQL cluster, written in Go: Redis-majority
 health state and leases, layered fencing against split brain, Prometheus
 metrics, chaos testing, and timed backup/restore drills.
 
-Status: **M1**: lab cluster plus per-node health agents. See
+Status: **M2**: lab cluster, health agents, coordinator and router (failover verified by `make e2e`). See
 [docs/design.md](docs/design.md) for the architecture, fencing model, detection
 budget, and milestone plan.
 

@@ -1,0 +1,54 @@
+{
+  "kind": "e2e",
+  "commit": "6b52a2c-dirty",
+  "started_at": "2026-11-18T20:38:46.156068-05:00",
+  "finished_at": "2026-11-18T20:38:59.25149-05:00",
+  "scenarios": [
+    {
+      "name": "steady",
+      "what": "no faults: routing, leadership and writes behave",
+      "checks": [
+        {
+          "name": "topology committed on every Redis",
+          "pass": true,
+          "detail": "epoch 1, primary mysql-1, 3/3 copies"
+        },
+        {
+          "name": "one coordinator leads",
+          "pass": true,
+          "detail": "coordinator-1/4b73bd"
+        },
+        {
+          "name": "every node healthy",
+          "pass": true
+        },
+        {
+          "name": "router sends writes to the primary",
+          "pass": true,
+          "detail": "last acked write served by \"mysql-1\""
+        },
+        {
+          "name": "router sends reads to a replica",
+          "pass": true,
+          "detail": "read served by \"mysql-3\" (\u003cnil\u003e)"
+        },
+        {
+          "name": "writes flow without interruption",
+          "pass": true,
+          "detail": "longest gap between acks 76ms"
+        },
+        {
+          "name": "no failover without a fault",
+          "pass": true,
+          "detail": "epoch 1"
+        },
+        {
+          "name": "never two writable nodes",
+          "pass": true,
+          "detail": "100 samples, 0ms dual-writable"
+        }
+      ],
+      "seconds": 13.095685291
+    }
+  ]
+}

@@ -67,13 +67,40 @@ sql "$PRIMARY" "CREATE DATABASE IF NOT EXISTS ha_meta;
                   ts        DATETIME(6)  NOT NULL
                 );
                 REPLACE INTO ha_meta.heartbeat VALUES (1, @@server_id, NOW(6));
-                CREATE DATABASE IF NOT EXISTS app;"
+                -- One row per epoch, written by whoever opened that primary:
+                -- the epoch history, replicated with the data.
+                CREATE TABLE IF NOT EXISTS ha_meta.cluster (
+                  epoch        BIGINT UNSIGNED PRIMARY KEY,
+                  primary_node VARCHAR(64)  NOT NULL,
+                  promoted_by  VARCHAR(128) NOT NULL,
+                  promoted_at  DATETIME(6)  NOT NULL
+                );
+                INSERT INTO ha_meta.cluster VALUES (1, '$PRIMARY', 'bootstrap', NOW(6));
+                CREATE DATABASE IF NOT EXISTS app;
+                -- The failover bench's write load; served_by records which
+                -- server executed each insert.
+                CREATE TABLE IF NOT EXISTS app.writes (
+                  id         BIGINT UNSIGNED PRIMARY KEY,
+                  written_at DATETIME(6) NOT NULL,
+                  served_by  VARCHAR(64) NOT NULL
+                );"
 
 gtid=$(sql "$PRIMARY" "SELECT @@GLOBAL.gtid_executed")
 for n in "${REPLICAS[@]}"; do
   [[ "$(sql "$n" "SELECT WAIT_FOR_EXECUTED_GTID_SET('$gtid', 10)")" == "0" ]] \
     || die "$n did not apply $gtid within 10s"
 done
+
+# Last: publishing the topology is what lets the agents take the primary
+# lease, the coordinators start reconciling, and the router accept writes.
+topology=$(printf '{"epoch":1,"primary":"%s","state":"ok","claim":"bootstrap","by":"bootstrap","updated_at":"%s"}' \
+  "$PRIMARY" "$(date -u +%Y-%m-%dT%H:%M:%SZ)")
+acks=0
+for i in 1 2 3; do
+  [[ "$(docker exec "hafo-redis-$i" redis-cli SET hafo:topology "$topology")" == "OK" ]] && acks=$((acks + 1))
+done
+((acks >= 2)) || die "topology reached only $acks of 3 Redis instances"
+log "published topology epoch 1 (primary $PRIMARY) to $acks/3 Redis instances"
 
 log "bootstrap complete"
 "$(dirname "$0")/status.sh"

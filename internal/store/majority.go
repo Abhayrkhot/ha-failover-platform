@@ -17,6 +17,9 @@ type KV interface {
 	Set(ctx context.Context, key string, val []byte, ttl time.Duration) error
 	// Get returns nil, nil when the key is absent.
 	Get(ctx context.Context, key string) ([]byte, error)
+	// Eval runs a Lua script that returns an integer. Scripts are how
+	// compare-and-set and lease operations stay atomic on each instance.
+	Eval(ctx context.Context, script string, keys []string, args ...any) (int64, error)
 	Close() error
 }
 
@@ -24,6 +27,7 @@ type KV interface {
 type Result struct {
 	Addr  string
 	Value []byte // Get only; nil when absent or on error
+	N     int64  // Eval only: the script's integer reply
 	Err   error
 }
 
@@ -79,7 +83,20 @@ func (m *Majority) Get(ctx context.Context, key string) []Result {
 	})
 }
 
+// Eval runs script on every instance.
+func (m *Majority) Eval(ctx context.Context, script string, keys []string, args ...any) []Result {
+	return m.run(ctx, func(ctx context.Context, kv KV, r *Result) {
+		r.N, r.Err = kv.Eval(ctx, script, keys, args...)
+	})
+}
+
 func (m *Majority) each(ctx context.Context, op func(context.Context, KV) ([]byte, error)) []Result {
+	return m.run(ctx, func(ctx context.Context, kv KV, r *Result) {
+		r.Value, r.Err = op(ctx, kv)
+	})
+}
+
+func (m *Majority) run(ctx context.Context, op func(context.Context, KV, *Result)) []Result {
 	out := make([]Result, len(m.kvs))
 	var wg sync.WaitGroup
 	for i, kv := range m.kvs {
@@ -88,8 +105,8 @@ func (m *Majority) each(ctx context.Context, op func(context.Context, KV) ([]byt
 			defer wg.Done()
 			ctx, cancel := context.WithTimeout(ctx, m.timeout)
 			defer cancel()
-			v, err := op(ctx, kv)
-			out[i] = Result{Addr: m.addrs[i], Value: v, Err: err}
+			out[i].Addr = m.addrs[i]
+			op(ctx, kv, &out[i])
 		}()
 	}
 	wg.Wait()
@@ -103,6 +120,28 @@ func (m *Majority) Close() error {
 		errs = append(errs, kv.Close())
 	}
 	return errors.Join(errs...)
+}
+
+// Replied counts Eval results whose script returned want.
+func Replied(rs []Result, want int64) int {
+	n := 0
+	for _, r := range rs {
+		if r.Err == nil && r.N == want {
+			n++
+		}
+	}
+	return n
+}
+
+// Absent counts instances that answered and do not hold the key.
+func Absent(rs []Result) int {
+	n := 0
+	for _, r := range rs {
+		if r.Err == nil && r.Value == nil {
+			n++
+		}
+	}
+	return n
 }
 
 // Succeeded counts results without an error.
@@ -128,6 +167,10 @@ func (r redisKV) Get(ctx context.Context, key string) ([]byte, error) {
 		return nil, nil
 	}
 	return b, err
+}
+
+func (r redisKV) Eval(ctx context.Context, script string, keys []string, args ...any) (int64, error) {
+	return r.c.Eval(ctx, script, keys, args...).Int64()
 }
 
 func (r redisKV) Close() error { return r.c.Close() }

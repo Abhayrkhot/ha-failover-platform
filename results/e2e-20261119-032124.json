@@ -1,0 +1,36 @@
+{
+  "kind": "e2e",
+  "commit": "6b52a2c-dirty",
+  "started_at": "2026-11-19T03:21:24.34877243Z",
+  "finished_at": "2026-11-19T03:31:10.538645845Z",
+  "scenarios": [
+    {
+      "name": "steady",
+      "what": "no faults: routing, leadership and writes behave",
+      "checks": null,
+      "seconds": 180.059480373,
+      "error": "not steady before the scenario: cluster not healthy with writes flowing within 3m0s"
+    },
+    {
+      "name": "router-restart",
+      "what": "the router restarts under write load",
+      "checks": null,
+      "seconds": 180.064855938,
+      "error": "not steady before the scenario: cluster not healthy with writes flowing within 3m0s"
+    },
+    {
+      "name": "replica-crash",
+      "what": "one replica is killed",
+      "checks": null,
+      "seconds": 180.086337792,
+      "error": "not steady before the scenario: cluster not healthy with writes flowing within 3m0s"
+    },
+    {
+      "name": "replicas-down",
+      "what": "both replicas are killed: writes must stop, not fail over",
+      "checks": null,
+      "seconds": 45.979167429,
+      "error": "not steady before the scenario: cluster not healthy with writes flowing within 3m0s"
+    }
+  ]
+}

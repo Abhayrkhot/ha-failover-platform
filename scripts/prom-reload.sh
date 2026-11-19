@@ -32,21 +32,23 @@ fi
 
 want_rules=$(docker exec hafo-prometheus promtool check rules /etc/prometheus/rules.yml | awk '/SUCCESS/ { print $2 }')
 [[ -n "$want_rules" ]] || die "promtool rejected rules.yml"
+# Every hafo target listed in prometheus.yml (Prometheus scraping itself aside).
+want_targets=$(grep -oE '"[a-z0-9-]+:[0-9]+"' "$ROOT/deploy/prometheus/prometheus.yml" | grep -vc localhost)
 
 for _ in $(seq 20); do
-  read -r rules agents_up < <(python3 - "$PROM" <<'EOF'
+  read -r rules up < <(python3 - "$PROM" <<'EOF'
 import json, sys, urllib.request
 base = sys.argv[1]
 get = lambda p: json.load(urllib.request.urlopen(base + p))["data"]
 rules = sum(len(g["rules"]) for g in get("/api/v1/rules")["groups"])
-up = sum(1 for t in get("/api/v1/targets")["activeTargets"] if t["labels"]["job"] == "agents" and t["health"] == "up")
+up = sum(1 for t in get("/api/v1/targets")["activeTargets"] if t["labels"]["job"] != "prometheus" and t["health"] == "up")
 print(rules, up)
 EOF
   )
-  if [[ "$rules" == "$want_rules" && "$agents_up" == "3" ]]; then
-    log "Prometheus running $rules/$want_rules rules, 3/3 agent targets up"
+  if [[ "$rules" == "$want_rules" && "$up" == "$want_targets" ]]; then
+    log "Prometheus running $rules/$want_rules rules, $up/$want_targets targets up"
     exit 0
   fi
   sleep 0.5
 done
-die "Prometheus has $rules/$want_rules rules and $agents_up/3 agent targets up"
+die "Prometheus has $rules/$want_rules rules and $up/$want_targets targets up"

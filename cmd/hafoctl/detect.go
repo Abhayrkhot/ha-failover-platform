@@ -569,11 +569,7 @@ func writeReport(dir string, rep report) (string, error) {
 		return "", err
 	}
 	path := filepath.Join(dir, "detect-"+rep.StartedAt.Format("20060102-150405")+".json")
-	b, err := json.MarshalIndent(rep, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return path, os.WriteFile(path, append(b, '\n'), 0o644)
+	return path, writeJSON(path, rep)
 }
 
 func gitCommit() string {

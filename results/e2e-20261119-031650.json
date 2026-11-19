@@ -1,0 +1,50 @@
+{
+  "kind": "e2e",
+  "commit": "6b52a2c-dirty",
+  "started_at": "2026-11-19T03:16:50.405222118Z",
+  "finished_at": "2026-11-19T03:20:03.552999931Z",
+  "scenarios": [
+    {
+      "name": "primary-hang",
+      "what": "the primary freezes (docker pause) and later wakes up",
+      "checks": [
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "2753ms (bound 5s), mysql-1 -\u003e mysql-2, epoch 2"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "382 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": false,
+          "detail": "rebuilt (errant) converge: mysql-1 did not rejoin within 3m0s"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": false,
+          "detail": "mysql-1 did not catch up to the primary (invalid connection)"
+        },
+        {
+          "name": "woken old primary is fenced quickly",
+          "pass": true,
+          "detail": "300ms with two nodes reporting writable"
+        }
+      ],
+      "seconds": 193.147755286
+    }
+  ]
+}

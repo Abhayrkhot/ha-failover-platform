@@ -13,6 +13,7 @@ type metrics struct {
 	heartbeats    *prometheus.CounterVec
 	publishes     *prometheus.CounterVec
 	healthChanges *prometheus.CounterVec
+	selfFences    *prometheus.CounterVec
 }
 
 func newMetrics(reg prometheus.Registerer, a *Agent) *metrics {
@@ -38,10 +39,13 @@ func newMetrics(reg prometheus.Registerer, a *Agent) *metrics {
 			Name: "hafo_health_transitions_total", Help: "Verdict changes, by the state entered.",
 		}, []string{"to"}),
 	}
+	m.selfFences = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "hafo_self_fence_total", Help: "Times the agent made its own server read-only, by reason (stray, lease) and outcome.",
+	}, []string{"reason", "result"})
 	for _, kind := range []string{"connect", "timeout", "query"} {
 		m.probeErrors.WithLabelValues(kind) // export zeros so rate() works from the start
 	}
-	reg.MustRegister(m.probes, m.probeErrors, m.probeDuration, m.heartbeats, m.publishes, m.healthChanges,
+	reg.MustRegister(m.probes, m.probeErrors, m.probeDuration, m.heartbeats, m.publishes, m.healthChanges, m.selfFences,
 		&stateCollector{a: a})
 	return m
 }
@@ -52,24 +56,25 @@ func newMetrics(reg prometheus.Registerer, a *Agent) *metrics {
 type stateCollector struct{ a *Agent }
 
 var (
-	descUp         = prometheus.NewDesc("hafo_mysql_up", "1 if the last probe of the local MySQL succeeded.", nil, nil)
-	descHealthy    = prometheus.NewDesc("hafo_node_healthy", "1 if the agent's debounced verdict is healthy.", nil, nil)
-	descRole       = prometheus.NewDesc("hafo_node_role", "1 for the node's current role.", []string{"role"}, nil)
-	descReadOnly   = prometheus.NewDesc("hafo_mysql_read_only", "@@read_only.", nil, nil)
-	descSuperRO    = prometheus.NewDesc("hafo_mysql_super_read_only", "@@super_read_only.", nil, nil)
-	descLag        = prometheus.NewDesc("hafo_replication_lag_seconds", "Age of the newest applied primary heartbeat (replicas).", nil, nil)
-	descIO         = prometheus.NewDesc("hafo_replication_io_running", "1 if the replication IO thread is ON (replicas).", nil, nil)
-	descSQL        = prometheus.NewDesc("hafo_replication_sql_running", "1 if the replication applier is ON (replicas).", nil, nil)
-	descSemiActive = prometheus.NewDesc("hafo_semi_sync_source_active", "1 if semi-sync is active on this source (primary).", nil, nil)
-	descSemiPeers  = prometheus.NewDesc("hafo_semi_sync_source_clients", "Connected semi-sync replicas (primary).", nil, nil)
-	descBlocked    = prometheus.NewDesc("hafo_heartbeat_blocked_writes", "Heartbeat commits waiting for a semi-sync ack (primary).", nil, nil)
-	descAcks       = prometheus.NewDesc("hafo_redis_publish_acks", "Redis instances that accepted the last health record.", nil, nil)
-	descQuorum     = prometheus.NewDesc("hafo_redis_quorum", "1 if the last health record reached a Redis majority.", nil, nil)
+	descUp       = prometheus.NewDesc("hafo_mysql_up", "1 if the last probe of the local MySQL succeeded.", nil, nil)
+	descHealthy  = prometheus.NewDesc("hafo_node_healthy", "1 if the agent's debounced verdict is healthy.", nil, nil)
+	descRole     = prometheus.NewDesc("hafo_node_role", "1 for the node's current role.", []string{"role"}, nil)
+	descReadOnly = prometheus.NewDesc("hafo_mysql_read_only", "@@read_only.", nil, nil)
+	descSuperRO  = prometheus.NewDesc("hafo_mysql_super_read_only", "@@super_read_only.", nil, nil)
+	descLag      = prometheus.NewDesc("hafo_replication_lag_seconds", "Age of the newest applied primary heartbeat (replicas).", nil, nil)
+	descIO       = prometheus.NewDesc("hafo_replication_io_running", "1 if the replication IO thread is ON (replicas).", nil, nil)
+	descSQL      = prometheus.NewDesc("hafo_replication_sql_running", "1 if the replication applier is ON (replicas).", nil, nil)
+	descSemiOn   = prometheus.NewDesc("hafo_semi_sync_source_enabled", "1 if semi-sync is enabled on this source (primary).", nil, nil)
+	descReplicas = prometheus.NewDesc("hafo_replicas_connected", "Replicas streaming from this node; all are semi-sync (primary).", nil, nil)
+	descBlocked  = prometheus.NewDesc("hafo_heartbeat_blocked_writes", "Heartbeat commits waiting for a semi-sync ack (primary).", nil, nil)
+	descAcks     = prometheus.NewDesc("hafo_redis_publish_acks", "Redis instances that accepted the last health record.", nil, nil)
+	descQuorum   = prometheus.NewDesc("hafo_redis_quorum", "1 if the last health record reached a Redis majority.", nil, nil)
+	descLease    = prometheus.NewDesc("hafo_primary_lease_held", "1 if this agent renewed the primary lease on a Redis majority this tick.", nil, nil)
 )
 
 func (c *stateCollector) Describe(ch chan<- *prometheus.Desc) {
 	for _, d := range []*prometheus.Desc{descUp, descHealthy, descRole, descReadOnly, descSuperRO, descLag,
-		descIO, descSQL, descSemiActive, descSemiPeers, descBlocked, descAcks, descQuorum} {
+		descIO, descSQL, descSemiOn, descReplicas, descBlocked, descAcks, descQuorum, descLease} {
 		ch <- d
 	}
 }
@@ -90,6 +95,7 @@ func (c *stateCollector) Collect(ch chan<- prometheus.Metric) {
 	}
 	g(descAcks, float64(s.acks))
 	g(descQuorum, b2f(s.acks >= s.quorum))
+	g(descLease, b2f(s.leasing && s.leaseAcks >= s.quorum))
 	if !o.Reachable {
 		return
 	}
@@ -103,8 +109,8 @@ func (c *stateCollector) Collect(ch chan<- prometheus.Metric) {
 			g(descLag, *o.LagSeconds)
 		}
 	case health.RolePrimary:
-		g(descSemiActive, b2f(o.SemiSyncSourceActive))
-		g(descSemiPeers, float64(o.SemiSyncClients))
+		g(descSemiOn, b2f(o.SemiSyncSourceEnabled))
+		g(descReplicas, float64(o.ConnectedReplicas))
 		g(descBlocked, float64(o.BlockedWrites))
 	}
 }
