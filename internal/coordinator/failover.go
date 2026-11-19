@@ -170,7 +170,9 @@ func (c *Coordinator) promote(ctx context.Context, best string, cands []candidat
 	if !c.leading() {
 		return errLostLeadership
 	}
-	return c.exec(ctx, best, q("SET GLOBAL super_read_only = OFF"), q("SET GLOBAL read_only = OFF"))
+	// offline_mode may be left on by a fence that could not finish (see
+	// mysqlx.Fence); a primary must accept clients.
+	return c.exec(ctx, best, q("SET GLOBAL offline_mode = OFF"), q("SET GLOBAL super_read_only = OFF"), q("SET GLOBAL read_only = OFF"))
 }
 
 // prepare stops each node's IO thread and waits for its applier to execute

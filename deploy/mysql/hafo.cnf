@@ -23,6 +23,8 @@ innodb_flush_log_at_trx_commit = 1
 # first writes forever, since no replica is connected during init.
 plugin_load_add = semisync_source.so
 plugin_load_add = semisync_replica.so
+# Clone: rebuild a node from a physical copy of the primary (scripts/rebuild.sh).
+plugin_load_add = mysql_clone.so
 loose_rpl_semi_sync_replica_enabled               = ON
 loose_rpl_semi_sync_source_wait_point             = AFTER_SYNC
 loose_rpl_semi_sync_source_wait_for_replica_count = 1

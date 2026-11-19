@@ -31,7 +31,11 @@ import (
 //   - consistent: after the old primary rejoins (or is rebuilt), app.writes
 //     has the same checksum on every node
 //
-// "control" trials inject nothing and must show no failover.
+// "control" trials inject nothing and must show no failover. "leader-midway"
+// kills the primary, waits until the leading coordinator has claimed the next
+// epoch (state "promoting"), and kills that coordinator before it can finish:
+// another coordinator must take the lease and complete the promotion under a
+// newer epoch.
 
 type failoverOpts struct {
 	faults, redis, router, out           string
@@ -54,6 +58,8 @@ type ftrial struct {
 	// The coordinator's own clock, in ms from first suspecting the primary.
 	Phases     map[string]float64 `json:"coordinator_phases_ms,omitempty"`
 	Rejoin     string             `json:"rejoin,omitempty"`
+	Diverged   convergeResult     `json:"old_primary_divergence"`
+	Note       string             `json:"note,omitempty"`
 	Consistent bool               `json:"consistent"`
 	Checksum   string             `json:"checksum,omitempty"`
 	Error      string             `json:"error,omitempty"`
@@ -62,7 +68,7 @@ type ftrial struct {
 func runFailover(ctx context.Context, args []string) error {
 	fs := flag.NewFlagSet("bench failover", flag.ExitOnError)
 	var o failoverOpts
-	fs.StringVar(&o.faults, "faults", "control,kill,pause,partition", "faults to apply to the primary, in order")
+	fs.StringVar(&o.faults, "faults", "control,kill,pause,partition", "faults to apply to the primary, in order (also: leader-midway)")
 	fs.IntVar(&o.trials, "trials", 10, "trials per fault")
 	fs.StringVar(&o.redis, "redis", defaultRedis, "comma-separated Redis instances")
 	fs.StringVar(&o.router, "router", "127.0.0.1:23306", "router write port")
@@ -144,6 +150,13 @@ func failoverTrial(ctx context.Context, l *lab, o failoverOpts, fault string, n 
 		t.Error = err.Error()
 		return t
 	}
+	leader := ""
+	if fault == "leader-midway" {
+		if leader, _ = l.leader(ctx); leader == "" {
+			t.Error = "no coordinator leader to kill"
+			return t
+		}
+	}
 	t0 := time.Now()
 	if err := inject(ctx); err != nil {
 		t.Error = "inject: " + err.Error()
@@ -156,6 +169,20 @@ func failoverTrial(ctx context.Context, l *lab, o failoverOpts, fault string, n 
 			_ = heal(context.Background())
 		}
 	}()
+	midway := false
+	if leader != "" {
+		defer func() { _ = docker(context.Background(), "start", leader) }()
+		midway, _ = until(ctx, 10*time.Second, 5*time.Millisecond, func() bool {
+			v := l.topology(ctx)
+			return v.OK && v.Committed.Epoch > v0.Committed.Epoch && v.Committed.State == cluster.StatePromoting
+		})
+		if midway {
+			_ = docker(ctx, "kill", leader)
+			t.Note = fmt.Sprintf("killed %s after it claimed epoch %d, before it promoted anyone", leader, v0.Committed.Epoch+1)
+		} else {
+			t.Note = "claim not observed; leader not killed"
+		}
+	}
 
 	ok, _ := until(ctx, o.recoverTimeout, 20*time.Millisecond, func() bool {
 		v := l.topology(ctx)
@@ -189,13 +216,17 @@ func failoverTrial(ctx context.Context, l *lab, o failoverOpts, fault string, n 
 		t.Error = strings.TrimSpace(t.Error + " heal: " + err.Error())
 		return t
 	}
-	t.Rejoin, err = l.converge(ctx, t.OldPrimary, t.NewPrimary, o.convergeTimeout)
+	t.Diverged, err = l.converge(ctx, t.OldPrimary, t.NewPrimary, o.convergeTimeout)
+	t.Rejoin = t.Diverged.Outcome
 	if err != nil {
 		t.Error = strings.TrimSpace(t.Error + " converge: " + err.Error())
 	}
 	t.Watch = l.watch.take()
 	v := l.topology(ctx)
 	t.ExtraFailovers = int(v.Committed.Epoch-v0.Committed.Epoch) - 1
+	if midway {
+		t.ExtraFailovers-- // the abandoned claim plus the completing one
+	}
 	t.Consistent, t.Checksum = l.consistent(ctx)
 	return t
 }
@@ -206,7 +237,7 @@ func primaryFault(name, node string) (inject, heal func(context.Context) error, 
 		return func(ctx context.Context) error { return docker(ctx, args...) }
 	}
 	switch name {
-	case "kill":
+	case "kill", "leader-midway":
 		return run("kill", c), run("start", c), nil
 	case "pause":
 		return run("pause", c), run("unpause", c), nil
@@ -226,8 +257,14 @@ func (t ftrial) line() string {
 	s := fmt.Sprintf("%-9s #%-2d %s -> %-7s recovery %-7s gap %-7s acked %-4d lost %d interleaved %d phantom %d dual %dms extra %d consistent %v %s",
 		t.Fault, t.N, t.OldPrimary, t.NewPrimary, f(t.RecoveryMS), f(t.GapMS), t.Acked, t.LostAcked, t.Interleaved,
 		t.PhantomRows, t.Watch.DualWritableMS, t.ExtraFailovers, t.Consistent, t.Rejoin)
+	if t.Diverged.ErrantGTIDs != "" {
+		s += fmt.Sprintf(" (errant %s, %d diverged rows, %d of them acked)", t.Diverged.ErrantGTIDs, t.Diverged.DivergedRows, t.Diverged.DivergedAcked)
+	}
 	if p := t.Phases; p != nil {
 		s += fmt.Sprintf(" [lease %.0f claim %.0f writable %.0f published %.0f]", p["lease_expired"], p["claimed"], p["writable"], p["published"])
+	}
+	if t.Note != "" {
+		s += " NOTE " + t.Note
 	}
 	if t.Error != "" {
 		s += " ERROR " + t.Error
@@ -237,8 +274,8 @@ func (t ftrial) line() string {
 
 func printFailoverSummary(trials []ftrial) {
 	type agg struct {
-		n, failed, lost, interleaved, other, phantom, extra, inconsistent, errant, dualMax int
-		recovery, gap, lease, promote                                                      []float64
+		n, failed, lost, interleaved, other, phantom, extra, inconsistent, errant, dualMax, divAcked int
+		recovery, gap, lease, promote                                                                []float64
 	}
 	var order []string
 	by := map[string]*agg{}
@@ -256,6 +293,7 @@ func printFailoverSummary(trials []ftrial) {
 		a.phantom += t.PhantomRows
 		a.extra += t.ExtraFailovers
 		a.dualMax = max(a.dualMax, t.Watch.DualWritableMS)
+		a.divAcked += t.Diverged.DivergedAcked
 		if !t.Consistent {
 			a.inconsistent++
 		}
@@ -280,12 +318,12 @@ func printFailoverSummary(trials []ftrial) {
 	}
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.AlignRight)
 	fmt.Println("\nclient-visible recovery (ms) and split-brain invariants")
-	fmt.Fprintln(w, "fault\ttrials\trecovery p50\tp95\tmax\tno recovery\tlost acked\tinterleaved\tother\textra failovers\tdual-writable max ms\tinconsistent\tphantom\trebuilt\t")
+	fmt.Fprintln(w, "fault\ttrials\trecovery p50\tp95\tmax\tno recovery\tlost acked\tinterleaved\tother\tdiverged acked\textra failovers\tdual-writable max ms\tinconsistent\tphantom\trebuilt\t")
 	for _, f := range order {
 		a := by[f]
 		r := summary(a.recovery)
-		fmt.Fprintf(w, "%s\t%d\t%.0f\t%.0f\t%.0f\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t\n", f, a.n, r.P50, r.P95, r.Max, a.failed,
-			a.lost, a.interleaved, a.other, a.extra, a.dualMax, a.inconsistent, a.phantom, a.errant)
+		fmt.Fprintf(w, "%s\t%d\t%.0f\t%.0f\t%.0f\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t\n", f, a.n, r.P50, r.P95, r.Max, a.failed,
+			a.lost, a.interleaved, a.other, a.divAcked, a.extra, a.dualMax, a.inconsistent, a.phantom, a.errant)
 	}
 	_ = w.Flush()
 	fmt.Println("\ncoordinator phases, p50 ms (lease wait = first suspicion -> lease gone; promote = lease gone -> published)")

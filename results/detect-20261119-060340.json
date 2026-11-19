@@ -1,0 +1,858 @@
+{
+  "kind": "detect",
+  "commit": "7f765c5-dirty",
+  "target": "mysql-3",
+  "started_at": "2026-11-19T06:03:40.508441653Z",
+  "finished_at": "2026-11-19T06:08:21.473234468Z",
+  "agent_config": {
+    "fail_after": 3,
+    "health_ttl": "1.5s",
+    "heartbeat_interval": "250ms",
+    "heartbeat_timeout": "1s",
+    "lease_ttl": "2s",
+    "max_lag": "1s",
+    "mysql_addr": "mysql-3:3306",
+    "node": "mysql-3",
+    "probe_interval": "250ms",
+    "probe_timeout": "200ms",
+    "publish_timeout": "100ms",
+    "recover_after": 2,
+    "redis_addrs": [
+      "redis-1:6379",
+      "redis-2:6379",
+      "redis-3:6379"
+    ],
+    "self_fence_after": "1.5s"
+  },
+  "prometheus_global": {
+    "evaluation_interval": "250ms",
+    "scrape_interval": "250ms",
+    "scrape_timeout": "200ms"
+  },
+  "summary": [
+    {
+      "fault": "control",
+      "trials": 10,
+      "agent_missed": 10,
+      "alert_missed": 10,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "alert_ms": {
+        "p50": 0,
+        "p95": 0,
+        "max": 0
+      }
+    },
+    {
+      "fault": "pause",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 846.016,
+        "p95": 917.347,
+        "max": 917.347
+      },
+      "alert_ms": {
+        "p50": 1134.912,
+        "p95": 1224.892,
+        "max": 1224.892
+      }
+    },
+    {
+      "fault": "kill",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 686.214,
+        "p95": 708.475,
+        "max": 708.475
+      },
+      "alert_ms": {
+        "p50": 1187.02,
+        "p95": 1208.281,
+        "max": 1208.281
+      }
+    },
+    {
+      "fault": "stop-sql",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 144.575,
+        "p95": 188.352,
+        "max": 188.352
+      },
+      "alert_ms": {
+        "p50": 627.754,
+        "p95": 692.052,
+        "max": 692.052
+      }
+    },
+    {
+      "fault": "applier-stall",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 162.77300000000002,
+        "p95": 169.793,
+        "max": 169.793
+      },
+      "alert_ms": {
+        "p50": 672.812,
+        "p95": 692.235,
+        "max": 692.235
+      }
+    },
+    {
+      "fault": "partition",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 651.873,
+        "p95": 718.933,
+        "max": 718.933
+      },
+      "alert_ms": {
+        "p50": 1149.216,
+        "p95": 1218.625,
+        "max": 1218.625
+      }
+    }
+  ],
+  "trials": [
+    {
+      "fault": "control",
+      "n": 1,
+      "started_at": "2026-11-19T06:03:42.572307377Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 2,
+      "started_at": "2026-11-19T06:03:47.650326387Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 3,
+      "started_at": "2026-11-19T06:03:52.718215789Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 4,
+      "started_at": "2026-11-19T06:03:57.800381059Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 5,
+      "started_at": "2026-11-19T06:04:02.874445502Z",
+      "inject_ms": 0.001,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 6,
+      "started_at": "2026-11-19T06:04:07.94097088Z",
+      "inject_ms": 0.001,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 7,
+      "started_at": "2026-11-19T06:04:13.010172238Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 8,
+      "started_at": "2026-11-19T06:04:18.075694301Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 9,
+      "started_at": "2026-11-19T06:04:23.15214945Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 10,
+      "started_at": "2026-11-19T06:04:28.225654317Z",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "pause",
+      "n": 1,
+      "started_at": "2026-11-19T06:04:33.304479673Z",
+      "inject_ms": 23.68,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 818.129,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1114.265,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 2,
+      "started_at": "2026-11-19T06:04:37.525059889Z",
+      "inject_ms": 65.699,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 846.016,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1155.485,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 3,
+      "started_at": "2026-11-19T06:04:41.786700179Z",
+      "inject_ms": 40.469,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 836.567,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1134.912,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 4,
+      "started_at": "2026-11-19T06:04:46.024389846Z",
+      "inject_ms": 28.693,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 846.073,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1127.438,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 5,
+      "started_at": "2026-11-19T06:04:50.248997452Z",
+      "inject_ms": 16.974,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 873.711,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1165.921,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 6,
+      "started_at": "2026-11-19T06:04:54.52957847Z",
+      "inject_ms": 36.593,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 840.671,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1131.338,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 7,
+      "started_at": "2026-11-19T06:04:58.760621577Z",
+      "inject_ms": 26.233,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 855.294,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1171.342,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 8,
+      "started_at": "2026-11-19T06:05:03.03637954Z",
+      "inject_ms": 21.045,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 832.382,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1119.391,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 9,
+      "started_at": "2026-11-19T06:05:07.258489557Z",
+      "inject_ms": 30.337,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 855.372,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1174.698,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 10,
+      "started_at": "2026-11-19T06:05:11.44955193Z",
+      "inject_ms": 28.537,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 917.347,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1224.892,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 1,
+      "started_at": "2026-11-19T06:05:15.778966429Z",
+      "inject_ms": 287.414,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 638.795,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1120.432,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 2,
+      "started_at": "2026-11-19T06:05:21.76229651Z",
+      "inject_ms": 247.016,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 663.716,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1183.394,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 3,
+      "started_at": "2026-11-19T06:05:27.473654268Z",
+      "inject_ms": 272.507,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 692.355,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1207.326,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 4,
+      "started_at": "2026-11-19T06:05:33.232497098Z",
+      "inject_ms": 248.072,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 686.214,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1187.02,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 5,
+      "started_at": "2026-11-19T06:05:38.975538567Z",
+      "inject_ms": 233.583,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 700.271,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1172.066,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 6,
+      "started_at": "2026-11-19T06:05:44.792603782Z",
+      "inject_ms": 229.528,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 624.079,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1115.121,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 7,
+      "started_at": "2026-11-19T06:05:50.47155372Z",
+      "inject_ms": 251.928,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 703.159,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1189.937,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 8,
+      "started_at": "2026-11-19T06:05:56.209880117Z",
+      "inject_ms": 267.518,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 708.475,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1208.281,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 9,
+      "started_at": "2026-11-19T06:06:01.974282994Z",
+      "inject_ms": 258.384,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 695.872,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1193.669,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 10,
+      "started_at": "2026-11-19T06:06:07.73532222Z",
+      "inject_ms": 267.68,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 684.841,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1205.562,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 1,
+      "started_at": "2026-11-19T06:06:13.481471842Z",
+      "inject_ms": 11.462,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 188.352,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 692.052,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 2,
+      "started_at": "2026-11-19T06:06:17.274603022Z",
+      "inject_ms": 2.247,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 146.593,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 626.647,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 3,
+      "started_at": "2026-11-19T06:06:20.78239099Z",
+      "inject_ms": 4.808,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 137.297,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 627.754,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 4,
+      "started_at": "2026-11-19T06:06:24.300187923Z",
+      "inject_ms": 2.306,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 120.827,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 623.552,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 5,
+      "started_at": "2026-11-19T06:06:28.021835088Z",
+      "inject_ms": 2.178,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 145.142,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 676.343,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 6,
+      "started_at": "2026-11-19T06:06:31.772789359Z",
+      "inject_ms": 2.167,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 143.268,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 673.57,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 7,
+      "started_at": "2026-11-19T06:06:35.519419527Z",
+      "inject_ms": 2.175,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 145.014,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 678.538,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 8,
+      "started_at": "2026-11-19T06:06:39.280649347Z",
+      "inject_ms": 2.566,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 134.976,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 627.189,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 9,
+      "started_at": "2026-11-19T06:06:42.775429148Z",
+      "inject_ms": 1.274,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 144.575,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 669.975,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 10,
+      "started_at": "2026-11-19T06:06:46.525519569Z",
+      "inject_ms": 2.587,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 146.462,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 626.137,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 1,
+      "started_at": "2026-11-19T06:06:50.038866674Z",
+      "inject_ms": 1.206,
+      "unhealthy_at_ms": 963.12,
+      "agent_ms": 1124.637,
+      "agent_reasons": [
+        "lag_high: 1.160s \u003e 1s"
+      ],
+      "alert_ms": 1616.271,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 2,
+      "started_at": "2026-11-19T06:06:54.530730647Z",
+      "inject_ms": 1.244,
+      "unhealthy_at_ms": 971.552,
+      "agent_ms": 1135.07,
+      "agent_reasons": [
+        "lag_high: 1.161s \u003e 1s"
+      ],
+      "alert_ms": 1656.07,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 3,
+      "started_at": "2026-11-19T06:06:59.253752935Z",
+      "inject_ms": 1.283,
+      "unhealthy_at_ms": 748.083,
+      "agent_ms": 917.876,
+      "agent_reasons": [
+        "lag_high: 1.161s \u003e 1s"
+      ],
+      "alert_ms": 1404.922,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 4,
+      "started_at": "2026-11-19T06:07:03.737169637Z",
+      "inject_ms": 1.202,
+      "unhealthy_at_ms": 765.215,
+      "agent_ms": 927.988,
+      "agent_reasons": [
+        "lag_high: 1.161s \u003e 1s"
+      ],
+      "alert_ms": 1457.45,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 5,
+      "started_at": "2026-11-19T06:07:08.274830303Z",
+      "inject_ms": 0.919,
+      "unhealthy_at_ms": 977.775,
+      "agent_ms": 1140.489,
+      "agent_reasons": [
+        "lag_high: 1.159s \u003e 1s"
+      ],
+      "alert_ms": 1661.446,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 6,
+      "started_at": "2026-11-19T06:07:13.019173876Z",
+      "inject_ms": 0.744,
+      "unhealthy_at_ms": 983.159,
+      "agent_ms": 1143.746,
+      "agent_reasons": [
+        "lag_high: 1.160s \u003e 1s"
+      ],
+      "alert_ms": 1667.649,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 7,
+      "started_at": "2026-11-19T06:07:17.76398888Z",
+      "inject_ms": 1.117,
+      "unhealthy_at_ms": 988.227,
+      "agent_ms": 1156.042,
+      "agent_reasons": [
+        "lag_high: 1.161s \u003e 1s"
+      ],
+      "alert_ms": 1661.039,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 8,
+      "started_at": "2026-11-19T06:07:22.499886905Z",
+      "inject_ms": 0.785,
+      "unhealthy_at_ms": 752.156,
+      "agent_ms": 916.068,
+      "agent_reasons": [
+        "lag_high: 1.161s \u003e 1s"
+      ],
+      "alert_ms": 1401.656,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 9,
+      "started_at": "2026-11-19T06:07:26.781202929Z",
+      "inject_ms": 0.822,
+      "unhealthy_at_ms": 971.48,
+      "agent_ms": 1132.743,
+      "agent_reasons": [
+        "lag_high: 1.160s \u003e 1s"
+      ],
+      "alert_ms": 1662.685,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 10,
+      "started_at": "2026-11-19T06:07:31.531501143Z",
+      "inject_ms": 1.377,
+      "unhealthy_at_ms": 971.317,
+      "agent_ms": 1140.034,
+      "agent_reasons": [
+        "lag_high: 1.162s \u003e 1s"
+      ],
+      "alert_ms": 1615.512,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 1,
+      "started_at": "2026-11-19T06:07:36.024371956Z",
+      "inject_ms": 141.893,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 646.178,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1136.795,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 2,
+      "started_at": "2026-11-19T06:07:40.715816547Z",
+      "inject_ms": 156.783,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 708.19,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1201.402,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 3,
+      "started_at": "2026-11-19T06:07:45.768222929Z",
+      "inject_ms": 151.001,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 651.873,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1139.935,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 4,
+      "started_at": "2026-11-19T06:07:50.777985508Z",
+      "inject_ms": 156.62,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 637.811,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1143.772,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 5,
+      "started_at": "2026-11-19T06:07:55.78336913Z",
+      "inject_ms": 175.157,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 634.94,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1115.119,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 6,
+      "started_at": "2026-11-19T06:08:00.752651751Z",
+      "inject_ms": 166.705,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 666.449,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1159.687,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 7,
+      "started_at": "2026-11-19T06:08:05.472065025Z",
+      "inject_ms": 153.379,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 699.588,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1201.661,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 8,
+      "started_at": "2026-11-19T06:08:10.230164944Z",
+      "inject_ms": 168.386,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 686.219,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1218.625,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 9,
+      "started_at": "2026-11-19T06:08:15.199992867Z",
+      "inject_ms": 156.819,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 718.933,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1195.97,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 10,
+      "started_at": "2026-11-19T06:08:20.265179259Z",
+      "inject_ms": 210.56,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 651.319,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: server misbehaving"
+      ],
+      "alert_ms": 1149.216,
+      "alert": "HafoNodeUnhealthy"
+    }
+  ]
+}

@@ -1,0 +1,480 @@
+{
+  "kind": "e2e",
+  "commit": "7f765c5-dirty",
+  "started_at": "2026-11-19T05:44:54.837558404Z",
+  "finished_at": "2026-11-19T05:47:35.037224434Z",
+  "scenarios": [
+    {
+      "name": "steady",
+      "what": "no faults: routing, leadership and writes behave",
+      "checks": [
+        {
+          "name": "topology committed on every Redis",
+          "pass": true,
+          "detail": "epoch 2, primary mysql-2, 3/3 copies"
+        },
+        {
+          "name": "one coordinator leads",
+          "pass": true,
+          "detail": "coordinator-1/872478"
+        },
+        {
+          "name": "every node healthy",
+          "pass": true
+        },
+        {
+          "name": "router sends writes to the primary",
+          "pass": true,
+          "detail": "last acked write served by \"mysql-2\""
+        },
+        {
+          "name": "router sends reads to a replica",
+          "pass": true,
+          "detail": "read served by \"mysql-3\" (\u003cnil\u003e)"
+        },
+        {
+          "name": "writes flow without interruption",
+          "pass": true,
+          "detail": "longest gap between acks 35ms"
+        },
+        {
+          "name": "no failover without a fault",
+          "pass": true,
+          "detail": "epoch 2"
+        },
+        {
+          "name": "never two writable nodes",
+          "pass": true,
+          "detail": "100 samples, 0ms dual-writable"
+        }
+      ],
+      "seconds": 13.212048769
+    },
+    {
+      "name": "router-restart",
+      "what": "the router restarts under write load",
+      "checks": [
+        {
+          "name": "writes resume after the router restarts",
+          "pass": true,
+          "detail": "first ack 454ms after the restart began"
+        },
+        {
+          "name": "no failover",
+          "pass": true,
+          "detail": "epoch 2"
+        }
+      ],
+      "seconds": 4.176027544
+    },
+    {
+      "name": "replica-crash",
+      "what": "one replica is killed",
+      "checks": [
+        {
+          "name": "router stops sending reads to it",
+          "pass": true,
+          "detail": "after 508ms"
+        },
+        {
+          "name": "writes keep flowing with one replica",
+          "pass": true,
+          "detail": "longest gap 30ms"
+        },
+        {
+          "name": "no failover",
+          "pass": true,
+          "detail": "epoch 2"
+        },
+        {
+          "name": "replica comes back as a healthy replica",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "router reads from it again",
+          "pass": true,
+          "detail": "after 1ms"
+        }
+      ],
+      "seconds": 13.599162488
+    },
+    {
+      "name": "replicas-down",
+      "what": "both replicas are killed: writes must stop, not fail over",
+      "checks": [
+        {
+          "name": "writes stop: nothing can acknowledge them",
+          "pass": true,
+          "detail": "0 writes acknowledged 2-5s after both replicas died"
+        },
+        {
+          "name": "no failover: the primary is fine",
+          "pass": true,
+          "detail": "epoch 2"
+        },
+        {
+          "name": "primary reports why",
+          "pass": true,
+          "detail": "[no_replicas_connected: no replica can acknowledge commits]"
+        },
+        {
+          "name": "primary is not fenced",
+          "pass": true,
+          "detail": "writable: [mysql-2]"
+        },
+        {
+          "name": "writes resume once a replica is back",
+          "pass": true,
+          "detail": "after 1.811s"
+        },
+        {
+          "name": "mysql-1 rejoins",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "mysql-3 rejoins",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "256 acked, 7 not acked, 7 of those committed anyway"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 904505550 on all 3 nodes"
+        }
+      ],
+      "seconds": 12.367738587
+    },
+    {
+      "name": "redis-minority-down",
+      "what": "one of three Redis instances stops",
+      "checks": [
+        {
+          "name": "topology still committed on the other two",
+          "pass": true,
+          "detail": "2 copies"
+        },
+        {
+          "name": "a coordinator still leads",
+          "pass": true,
+          "detail": "coordinator-1/872478"
+        },
+        {
+          "name": "writes unaffected",
+          "pass": true,
+          "detail": "longest gap 27ms"
+        },
+        {
+          "name": "no failover",
+          "pass": true,
+          "detail": "epoch 2"
+        },
+        {
+          "name": "restarted Redis gets the topology back",
+          "pass": true,
+          "detail": "3/3 copies after 5.235s (it waits 4s before starting)"
+        }
+      ],
+      "seconds": 16.850282052
+    },
+    {
+      "name": "leader-crash",
+      "what": "the leading coordinator is killed",
+      "checks": [
+        {
+          "name": "another coordinator takes over",
+          "pass": true,
+          "detail": "coordinator-3/900d53 after 2.529s (lease TTL 3s)"
+        },
+        {
+          "name": "no failover",
+          "pass": true,
+          "detail": "epoch 2"
+        },
+        {
+          "name": "writes unaffected",
+          "pass": true,
+          "detail": "longest gap 15ms"
+        }
+      ],
+      "seconds": 8.948034582
+    },
+    {
+      "name": "primary-crash",
+      "what": "the primary is killed",
+      "checks": [
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "2563ms (bound 5s), mysql-2 -\u003e mysql-1, epoch 3"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "395 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "0 diverged rows, 0 acked (errant GTIDs \"\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 2077843691 on all 3 nodes"
+        }
+      ],
+      "seconds": 10.296111434
+    },
+    {
+      "name": "primary-hang",
+      "what": "the primary freezes (docker pause) and later wakes up",
+      "checks": [
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "2708ms (bound 5s), mysql-1 -\u003e mysql-2, epoch 4"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "393 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rebuilt (errant) "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "1 diverged rows, 0 acked (errant GTIDs \"b7845693-e3db-11f1-ab6c-a633eced135e:927-928\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 21004541 on all 3 nodes"
+        },
+        {
+          "name": "woken old primary is fenced quickly",
+          "pass": true,
+          "detail": "200ms with two nodes reporting writable"
+        }
+      ],
+      "seconds": 18.714139433
+    },
+    {
+      "name": "primary-partition",
+      "what": "the primary is cut off the network",
+      "checks": [
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "2900ms (bound 5s), mysql-2 -\u003e mysql-1, epoch 5"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "304 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "0 diverged rows, 0 acked (errant GTIDs \"\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 3209466366 on all 3 nodes"
+        },
+        {
+          "name": "woken old primary is fenced quickly",
+          "pass": true,
+          "detail": "0ms with two nodes reporting writable"
+        }
+      ],
+      "seconds": 10.559805583
+    },
+    {
+      "name": "leader-and-primary-crash",
+      "what": "the leading coordinator and the primary die together",
+      "checks": [
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "3687ms (bound 10s), mysql-1 -\u003e mysql-2, epoch 6"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "271 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "0 diverged rows, 0 acked (errant GTIDs \"\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 1418549455 on all 3 nodes"
+        }
+      ],
+      "seconds": 13.203689065
+    },
+    {
+      "name": "leader-dies-mid-failover",
+      "what": "the leader is killed after claiming an epoch, before it promotes",
+      "checks": [
+        {
+          "name": "leader was killed mid-promotion",
+          "pass": true,
+          "detail": "killed hafo-coordinator-2 after it claimed epoch 7, before it promoted anyone"
+        },
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "7290ms (bound 15s), mysql-2 -\u003e mysql-1, epoch 8"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "278 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "0 diverged rows, 0 acked (errant GTIDs \"\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 845513184 on all 3 nodes"
+        }
+      ],
+      "seconds": 16.840956825
+    },
+    {
+      "name": "redis-majority-down",
+      "what": "two of three Redis instances stop: the primary must fence itself",
+      "checks": [
+        {
+          "name": "primary fences itself once it cannot renew its lease",
+          "pass": true,
+          "detail": "no writable node 1.669s after losing the Redis majority (self-fence after 1.5s)"
+        },
+        {
+          "name": "writes stop while there is no majority",
+          "pass": true,
+          "detail": "0 acks 3s+ after the loss"
+        },
+        {
+          "name": "nothing is promoted without a majority",
+          "pass": true
+        },
+        {
+          "name": "cluster recovers: topology rebuilt from MySQL's epoch history",
+          "pass": true,
+          "detail": "writes resume 10.653s after Redis restarts (4s delayed start + 5s loss confirmation + promotion); primary mysql-1"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "389 acked, 1133 not acked"
+        },
+        {
+          "name": "mysql-2 is a healthy replica",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "mysql-3 is a healthy replica",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 2513661179 on all 3 nodes"
+        }
+      ],
+      "seconds": 21.43150366
+    }
+  ]
+}

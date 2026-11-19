@@ -12,6 +12,15 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// go-redis logs dial failures itself ("pool.go: failed to dial") in addition
+// to returning them, and every caller here already handles the returned
+// errors: while an instance is down that is only noise.
+func init() { redis.SetLogger(quiet{}) }
+
+type quiet struct{}
+
+func (quiet) Printf(context.Context, string, ...any) {}
+
 // KV is the subset of a Redis client the majority needs.
 type KV interface {
 	Set(ctx context.Context, key string, val []byte, ttl time.Duration) error

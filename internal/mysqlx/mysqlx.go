@@ -116,14 +116,26 @@ func lag(ctx context.Context, db *sql.DB) (*float64, error) {
 
 // Fence makes the server read-only and drops its client connections.
 //
-// Turning on read-only waits for in-flight commits, and a commit parked
-// waiting for a semi-sync ack that will never come never finishes, so a naive
-// SET GLOBAL super_read_only could block for lock_wait_timeout (a year by
-// default). So, on one session: cap lock waits at 1s, kill clientUser's
-// connections and any thread parked on a semi-sync ack (their transactions are
-// already in this server's binlog; killing them cannot make it more
-// divergent), release any commit still parked by turning semi-sync off, then
-// go read-only. It returns how many connections it killed.
+// The order is what makes it safe:
+//
+//  1. offline_mode ON disconnects every session without CONNECTION_ADMIN
+//     (all clients) and refuses new ones, so from here on no client can
+//     start a commit. KILL-style disconnects shut the socket at once, so a
+//     killed session whose commit completes later can never receive its OK.
+//  2. Kill every thread parked waiting for a semi-sync ack (any user).
+//  3. Turn the semi-sync source off. A commit parked on an ack that will
+//     never come holds up read-only, and KILL does not interrupt that wait;
+//     disabling semi-sync releases them all at once. Their sessions are gone
+//     (1, 2), so nobody is told they succeeded.
+//  4. super_read_only ON, capped at a 1s lock wait.
+//  5. offline_mode OFF: a read-only node may serve reads again.
+//
+// Without step 1, a client connecting between steps 3 and 4 would commit
+// with semi-sync off, i.e. be acknowledged without any replica holding the
+// write, and a failover could then lose it. If step 4 fails, offline_mode
+// stays on: the node is still writable, so clients stay out.
+//
+// It returns how many parked threads it killed.
 func Fence(ctx context.Context, db *sql.DB, clientUser string) (int, error) {
 	conn, err := db.Conn(ctx)
 	if err != nil {
@@ -132,6 +144,9 @@ func Fence(ctx context.Context, db *sql.DB, clientUser string) (int, error) {
 	defer conn.Close()
 	if _, err := conn.ExecContext(ctx, "SET SESSION lock_wait_timeout = 1"); err != nil {
 		return 0, err
+	}
+	if _, err := conn.ExecContext(ctx, "SET GLOBAL offline_mode = ON"); err != nil {
+		return 0, fmt.Errorf("offline_mode: %w", err)
 	}
 	var ids []int64
 	rows, err := conn.QueryContext(ctx, `SELECT ID FROM performance_schema.processlist
@@ -148,14 +163,15 @@ func Fence(ctx context.Context, db *sql.DB, clientUser string) (int, error) {
 	for _, id := range ids {
 		_, _ = conn.ExecContext(ctx, fmt.Sprintf("KILL CONNECTION %d", id))
 	}
-	// KILL does not interrupt a commit parked on a semi-sync ack, and that
-	// commit holds up super_read_only. Turning the source side off releases
-	// every parked commit at once; the node is being demoted, and promotion
-	// turns semi-sync back on. Best effort: a node without the plugin has
-	// nothing parked.
+	// Best effort: a node without the plugin has nothing parked.
 	_, _ = conn.ExecContext(ctx, "SET GLOBAL rpl_semi_sync_source_enabled = OFF")
-	_, err = conn.ExecContext(ctx, "SET GLOBAL super_read_only = ON")
-	return len(ids), err
+	if _, err := conn.ExecContext(ctx, "SET GLOBAL super_read_only = ON"); err != nil {
+		return len(ids), fmt.Errorf("super_read_only: %w", err)
+	}
+	if _, err := conn.ExecContext(ctx, "SET GLOBAL offline_mode = OFF"); err != nil {
+		return len(ids), fmt.Errorf("leave offline_mode: %w", err)
+	}
+	return len(ids), nil
 }
 
 // MySQL error numbers used across the project.

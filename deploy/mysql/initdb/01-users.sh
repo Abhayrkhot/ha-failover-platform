@@ -25,6 +25,11 @@ CREATE USER 'hafo'@'%' IDENTIFIED BY '${HAFO_PASSWORD}';
 GRANT REPLICATION CLIENT, REPLICATION_SLAVE_ADMIN, SYSTEM_VARIABLES_ADMIN,
       CONNECTION_ADMIN, PROCESS, RELOAD ON *.* TO 'hafo'@'%';
 GRANT SELECT ON performance_schema.* TO 'hafo'@'%';
+-- Clone: hafo is the donor-side user (BACKUP_ADMIN); root runs CLONE on the
+-- node being rebuilt (CLONE_ADMIN). Both are registered by the clone plugin,
+-- after the entrypoint created root, so grant them explicitly.
+GRANT BACKUP_ADMIN, CLONE_ADMIN ON *.* TO 'hafo'@'%';
+GRANT BACKUP_ADMIN, CLONE_ADMIN ON *.* TO 'root'@'%', 'root'@'localhost';
 GRANT SELECT, INSERT, UPDATE, DELETE ON ha_meta.* TO 'hafo'@'%';
 
 CREATE USER 'app'@'%' IDENTIFIED BY '${APP_PASSWORD}';

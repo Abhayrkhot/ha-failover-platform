@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/Abhayrkhot/ha-failover-platform/internal/health"
@@ -76,6 +77,7 @@ var scenarios = []scenario{
 	{"primary-hang", "the primary freezes (docker pause) and later wakes up", func(e *e2e, ctx context.Context) error { return e.primaryFailure(ctx, "pause") }},
 	{"primary-partition", "the primary is cut off the network", func(e *e2e, ctx context.Context) error { return e.primaryFailure(ctx, "partition") }},
 	{"leader-and-primary-crash", "the leading coordinator and the primary die together", (*e2e).leaderAndPrimaryCrash},
+	{"leader-dies-mid-failover", "the leader is killed after claiming an epoch, before it promotes", (*e2e).leaderMidway},
 	{"redis-majority-down", "two of three Redis instances stop: the primary must fence itself", (*e2e).redisMajorityDown},
 }
 
@@ -229,8 +231,8 @@ func (e *e2e) replicaCrash(ctx context.Context) error {
 	if err := docker(ctx, "start", "hafo-"+r); err != nil {
 		return err
 	}
-	out, err := e.l.converge(ctx, r, p, e.opts.convergeTimeout)
-	e.check("replica comes back as a healthy replica", err == nil, "%s %v", out, errStr(err))
+	res, err := e.l.converge(ctx, r, p, e.opts.convergeTimeout)
+	e.check("replica comes back as a healthy replica", err == nil, "%s %v", res.Outcome, errStr(err))
 	ok, d = until(ctx, 10*time.Second, 100*time.Millisecond, func() bool {
 		_, pool, err := e.l.routerStatus(ctx)
 		return err == nil && slices.Contains(pool, r)
@@ -266,8 +268,8 @@ func (e *e2e) replicasDown(ctx context.Context) error {
 	ok, d := until(ctx, 60*time.Second, 100*time.Millisecond, func() bool { return e.l.w.lastAck().After(restart) })
 	e.check("writes resume once a replica is back", ok, "after %s", d.Round(time.Millisecond))
 	for _, r := range rs {
-		out, err := e.l.converge(ctx, r, p, e.opts.convergeTimeout)
-		e.check(r+" rejoins", err == nil, "%s %v", out, errStr(err))
+		res, err := e.l.converge(ctx, r, p, e.opts.convergeTimeout)
+		e.check(r+" rejoins", err == nil, "%s %v", res.Outcome, errStr(err))
 	}
 	cv, err := e.l.readBack(ctx, t0.Add(-3*time.Second), t0, p, p)
 	if err != nil {
@@ -335,6 +337,15 @@ func (e *e2e) primaryFailure(ctx context.Context, fault string) error {
 	return nil
 }
 
+func (e *e2e) leaderMidway(ctx context.Context) error {
+	t := failoverTrial(ctx, e.l, e.opts, "leader-midway", 1)
+	fmt.Println("    " + t.line())
+	e.check("leader was killed mid-promotion", strings.HasPrefix(t.Note, "killed"), "%s", t.Note)
+	// The next leader needs the lease (3s TTL) and one step timeout (2s) before it resumes.
+	e.failoverChecks(t, 15*time.Second)
+	return nil
+}
+
 func (e *e2e) leaderAndPrimaryCrash(ctx context.Context) error {
 	c, _ := e.l.leader(ctx)
 	v0 := e.l.topology(ctx)
@@ -369,7 +380,8 @@ func (e *e2e) leaderAndPrimaryCrash(ctx context.Context) error {
 	if err := docker(ctx, "start", "hafo-"+p); err != nil {
 		return err
 	}
-	t.Rejoin, err = e.l.converge(ctx, p, t.NewPrimary, e.opts.convergeTimeout)
+	t.Diverged, err = e.l.converge(ctx, p, t.NewPrimary, e.opts.convergeTimeout)
+	t.Rejoin = t.Diverged.Outcome
 	if err != nil {
 		t.Error = err.Error()
 	}
@@ -428,8 +440,8 @@ func (e *e2e) redisMajorityDown(ctx context.Context) error {
 	e.check("no acknowledged write lost", cv.LostAcked == 0, "%d acked, %d not acked", cv.Acked, cv.NotAcked)
 	for _, n := range e.l.nodes {
 		if n != np {
-			out, err := e.l.converge(ctx, n, np, e.opts.convergeTimeout)
-			e.check(n+" is a healthy replica", err == nil, "%s %v", out, errStr(err))
+			res, err := e.l.converge(ctx, n, np, e.opts.convergeTimeout)
+			e.check(n+" is a healthy replica", err == nil, "%s %v", res.Outcome, errStr(err))
 		}
 	}
 	ok, sum := e.l.consistent(ctx)
@@ -449,6 +461,8 @@ func (e *e2e) failoverChecks(t ftrial, bound time.Duration) {
 		"interleaved %d, served by another node %d", t.Interleaved, t.ServedByOther)
 	e.check("exactly one failover", t.ExtraFailovers == 0, "%d extra", t.ExtraFailovers)
 	e.check("old primary rejoins (rebuilt if it holds errant transactions)", t.Error == "" && t.Rejoin != "", "%s %s", t.Rejoin, t.Error)
+	e.check("rows only the old primary had were never acknowledged", t.Diverged.DivergedAcked == 0,
+		"%d diverged rows, %d acked (errant GTIDs %q)", t.Diverged.DivergedRows, t.Diverged.DivergedAcked, t.Diverged.ErrantGTIDs)
 	e.check("all nodes identical afterwards", t.Consistent, "%s", t.Checksum)
 }
 

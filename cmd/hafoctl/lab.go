@@ -52,7 +52,8 @@ func openLab(ctx context.Context, redisAddrs, routerWrite string, writeEvery tim
 	}
 	dbs = append(dbs, app)
 	// IDs unique across runs on the same cluster.
-	l.w = &writer{db: app, every: writeEvery, next: time.Now().UnixMilli() * 1000}
+	base := time.Now().UnixMilli() * 1000
+	l.w = &writer{db: app, every: writeEvery, base: base, next: base}
 	l.watch = &watcher{l: l}
 	bg, cancel := context.WithCancel(ctx)
 	go l.w.run(bg)
@@ -82,6 +83,7 @@ type write struct {
 type writer struct {
 	db    *sql.DB
 	every time.Duration
+	base  int64 // IDs this run writes are all above base
 	next  int64
 	gate  sync.Mutex // held by pause(): no write in flight while held
 
@@ -312,29 +314,107 @@ func (l *lab) errant(ctx context.Context, node, primary string) (bool, error) {
 	return !in, err
 }
 
-// converge waits for node to be a healthy replica of primary, rebuilding it
-// if it holds errant GTIDs. It returns "rejoined" or "rebuilt (errant)".
-func (l *lab) converge(ctx context.Context, node, primary string, timeout time.Duration) (string, error) {
-	outcome := "rejoined"
+// convergeResult is how a node came back after a failover.
+type convergeResult struct {
+	Outcome string `json:"outcome"` // "rejoined" or "rebuilt (errant)"
+	// Only for a node that held transactions the primary lacked, captured
+	// before the rebuild throws them away:
+	ErrantGTIDs   string `json:"errant_gtids,omitempty"`
+	DivergedRows  int    `json:"diverged_rows"`  // app.writes rows only this node had
+	DivergedAcked int    `json:"diverged_acked"` // of those, acknowledged to the client: must be 0
+}
+
+// converge waits for node to be a healthy replica of primary. A node that
+// holds errant GTIDs is first examined (divergence) and then rebuilt.
+func (l *lab) converge(ctx context.Context, node, primary string, timeout time.Duration) (convergeResult, error) {
+	res := convergeResult{Outcome: "rejoined"}
 	ok, _ := until(ctx, timeout, 500*time.Millisecond, func() bool {
 		rec, found := l.record(ctx, node)
 		if found && rec.Healthy && rec.Role == health.RoleReplica && rec.Observation.SourceHost == primary {
 			return true
 		}
-		if outcome == "rejoined" {
+		if res.Outcome == "rejoined" {
 			if errant, err := l.errant(ctx, node, primary); err == nil && errant {
-				outcome = "rebuilt (errant)"
+				if d, err := l.divergence(ctx, node, primary); err == nil {
+					res = d
+				}
+				res.Outcome = "rebuilt (errant)"
 				if out, err := exec.CommandContext(ctx, "scripts/rebuild.sh", node).CombinedOutput(); err != nil {
-					outcome = "rebuild failed: " + strings.TrimSpace(string(out))
+					res.Outcome = "rebuild failed: " + strings.TrimSpace(string(out))
 				}
 			}
 		}
 		return false
 	})
 	if !ok {
-		return outcome, fmt.Errorf("%s did not rejoin within %s", node, timeout)
+		return res, fmt.Errorf("%s did not rejoin within %s", node, timeout)
 	}
-	return outcome, nil
+	return res, nil
+}
+
+// divergence describes what node has that primary lacks: the errant GTID
+// set, the app.writes rows (from this run's writer) only node holds, and how
+// many of those the client was told had committed. A fenced old primary may
+// legitimately hold commits that reached its binlog but no replica; the
+// invariant is that none of them was ever acknowledged.
+func (l *lab) divergence(ctx context.Context, node, primary string) (convergeResult, error) {
+	var res convergeResult
+	qctx, cancel := context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	var gtid string
+	if err := l.root[node].QueryRowContext(qctx, `SELECT REPLACE(@@gtid_executed, '\n', '')`).Scan(&gtid); err != nil {
+		return res, err
+	}
+	if err := l.root[primary].QueryRowContext(qctx, `SELECT GTID_SUBTRACT(?, REPLACE(@@gtid_executed, '\n', ''))`, gtid).Scan(&res.ErrantGTIDs); err != nil {
+		return res, err
+	}
+	ids, err := queryIDs(qctx, l.root[node], "SELECT id FROM app.writes WHERE id > ?", l.w.base)
+	if err != nil {
+		return res, err
+	}
+	present := map[int64]bool{}
+	for i := 0; i < len(ids); i += 500 {
+		chunk := ids[i:min(i+500, len(ids))]
+		args := make([]any, len(chunk))
+		for j, id := range chunk {
+			args[j] = id
+		}
+		got, err := queryIDs(qctx, l.root[primary],
+			"SELECT id FROM app.writes WHERE id IN ("+strings.TrimSuffix(strings.Repeat("?,", len(chunk)), ",")+")", args...)
+		if err != nil {
+			return res, err
+		}
+		for _, id := range got {
+			present[id] = true
+		}
+	}
+	acked := l.w.ackedIDs()
+	for _, id := range ids {
+		if !present[id] {
+			res.DivergedRows++
+			if acked[id] {
+				res.DivergedAcked++
+			}
+		}
+	}
+	return res, nil
+}
+
+func queryIDs(ctx context.Context, db *sql.DB, query string, args ...any) ([]int64, error) {
+	rows, err := db.QueryContext(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
 }
 
 // consistent pauses the writer, waits for every replica to apply everything
@@ -347,23 +427,30 @@ func (l *lab) consistent(ctx context.Context) (bool, string) {
 	p := v.Committed.Primary
 	l.w.pause()
 	defer l.w.resume()
-	qctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	qctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	var gtid string
-	if err := l.root[p].QueryRowContext(qctx, `SELECT REPLACE(@@gtid_executed, '\n', '')`).Scan(&gtid); err != nil {
+	if err := retryConn(qctx, func() error {
+		return l.root[p].QueryRowContext(qctx, `SELECT REPLACE(@@gtid_executed, '\n', '')`).Scan(&gtid)
+	}); err != nil {
 		return false, "read primary gtid: " + err.Error()
 	}
 	sums := map[string]int64{}
 	for _, n := range l.nodes {
 		if n != p {
 			var timedOut int
-			if err := l.root[n].QueryRowContext(qctx, "SELECT WAIT_FOR_EXECUTED_GTID_SET(?, 15)", gtid).Scan(&timedOut); err != nil || timedOut != 0 {
+			err := retryConn(qctx, func() error {
+				return l.root[n].QueryRowContext(qctx, "SELECT WAIT_FOR_EXECUTED_GTID_SET(?, 15)", gtid).Scan(&timedOut)
+			})
+			if err != nil || timedOut != 0 {
 				return false, fmt.Sprintf("%s did not catch up to the primary (%v)", n, err)
 			}
 		}
 		var table string
 		var sum int64
-		if err := l.root[n].QueryRowContext(qctx, "CHECKSUM TABLE app.writes").Scan(&table, &sum); err != nil {
+		if err := retryConn(qctx, func() error {
+			return l.root[n].QueryRowContext(qctx, "CHECKSUM TABLE app.writes").Scan(&table, &sum)
+		}); err != nil {
 			return false, n + ": " + err.Error()
 		}
 		sums[n] = sum
@@ -374,6 +461,20 @@ func (l *lab) consistent(ctx context.Context) (bool, string) {
 		}
 	}
 	return true, fmt.Sprintf("app.writes checksum %d on all %d nodes", sums[p], len(l.nodes))
+}
+
+// retryConn retries f when it fails on the connection rather than in MySQL:
+// a pooled connection to a node that restarted (e.g. after a rebuild) fails
+// once with "invalid connection" before the pool replaces it.
+func retryConn(ctx context.Context, f func() error) error {
+	var err error
+	for range 3 {
+		if err = f(); err == nil || mysqlx.Number(err) != 0 || ctx.Err() != nil {
+			return err
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return err
 }
 
 // clientView reads a window of writes back from the primary.
@@ -453,6 +554,19 @@ func (l *lab) readBack(ctx context.Context, from, t0 time.Time, oldP, newP strin
 		}
 	}
 	return cv, nil
+}
+
+// ackedIDs returns the set of acknowledged write IDs.
+func (w *writer) ackedIDs() map[int64]bool {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	out := make(map[int64]bool, len(w.writes))
+	for _, wr := range w.writes {
+		if wr.Acked {
+			out[wr.ID] = true
+		}
+	}
+	return out
 }
 
 // lastAcked returns the most recent acknowledged write.

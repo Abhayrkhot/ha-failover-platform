@@ -32,36 +32,70 @@ still holds it. The fencing layers below are the answer to that.
 
 Redis runs without persistence. A Redis that restarts empty could let a second
 coordinator win a majority while the first still holds the lease on the other
-two. Planned for M2: delay Redis start by more than the max lease TTL
-("delayed restart"), so a restarted instance cannot vote until every lease it
-might have held has expired.
+two, so each instance sleeps 4s before starting, longer than the longest lease
+TTL (leader: 3s). A restarted instance cannot vote until every lease it might
+have held has expired ("delayed restart"). The topology has no TTL: the
+leader writes it back onto a restarted instance, and if a majority restarts
+at once it is rebuilt from MySQL (see the coordinator section).
 
 ## Fencing: four layers against split brain
 
-1. **Boot read-only.** `super_read_only=ON` is persisted on every node. A node
-   that restarts never comes back writable on its own. (Verified in M0.)
-2. **Self-fencing.** The primary's agent sets `super_read_only=ON` if it cannot
-   renew its lease on a Redis majority, before the lease's TTL runs out.
-3. **Lease wait + epoch.** The coordinator promotes only after the old lease
-   has expired plus a clock-drift margin. Each promotion bumps a monotonic epoch;
-   the router routes only to the node advertised at the highest epoch and drops
-   connections to the old one.
-4. **Semi-sync as the last fence.** `rpl_semi_sync_source_timeout` is at its
-   max (~49 days), so the source never falls back to async. An old primary whose
-   replicas have been repointed cannot commit anything, because nobody will
-   acknowledge it. (Verified in M0.) Cost: if both replicas are down, writes
-   block. This is a deliberate CP choice.
+1. **Boot read-only (M0).** `super_read_only=ON` is persisted on every node. A
+   node that restarts never comes back writable on its own.
+2. **Lease-based self-fencing (M2).** The primary's agent renews a primary
+   lease (2s TTL) on the Redis majority every 250ms, but only while its node
+   is the committed topology's primary *and* reachable, writable and running
+   semi-sync. Without a majority renewal for 1.5s, it makes its own server
+   read-only. The coordinator promotes only after the lease is gone from a
+   majority plus one tick, i.e. at least 0.75s after the old primary
+   stopped taking writes. The agent also fences its server when the
+   topology names a different primary (a paused primary waking up).
+3. **Claim before act, epochs (M2).** The coordinator claims epoch N+1 on
+   the Redis majority (compare-and-set) before it touches MySQL, so only one
+   coordinator can own a failover. The router stops sending writes the moment
+   it sees the claim, follows only the committed topology, and closes every
+   connection to the old primary. Before opening writes on the new primary,
+   the coordinator fences every other node it saw writable.
+4. **Semi-sync as the last fence (M0).** `rpl_semi_sync_source_timeout` is at
+   its max (~49 days), so the source never falls back to async. An old
+   primary whose replicas have been repointed cannot commit anything, because
+   nobody will acknowledge it. Cost: if both replicas are down, writes block.
+   This is a deliberate CP choice.
+
+### How a node is fenced
+
+Fencing a primary is subtle because of layer 4: a commit parked waiting for a
+semi-sync ack holds up `SET GLOBAL super_read_only`, and `KILL` does not
+interrupt that wait. `mysqlx.Fence` therefore does, on one session:
+
+1. `offline_mode = ON`. Every client session is disconnected and new ones are
+   refused. A disconnected session's socket is shut at once, so a commit that
+   completes later can never deliver its OK.
+2. Kill every thread parked on a semi-sync ack.
+3. Turn the semi-sync source off, which releases the parked commits.
+4. `super_read_only = ON`, with a 1s lock wait.
+5. `offline_mode = OFF`, so the read-only node can serve reads.
+
+Step 3 alone (M2) left a gap (M3 finding): a client connecting between 3 and
+4 would commit with semi-sync off, i.e. be acknowledged without any replica
+holding the write. Step 1 closes it. If step 4 fails, `offline_mode` stays
+on, so a still-writable node keeps clients out.
 
 ## Recovery budget (target: < 5s)
 
-| Phase | Time from failure |
-|---|---|
-| Detection: 250ms probes, several in a row must fail, majority must agree | ~1.5s |
-| Old lease (2s TTL, 500ms renew) expires + drift margin | ~2.3s |
-| Promote: stop replica, apply relay log, open writes, repoint peer | ~3.0s |
-| Router sees new epoch, clients reconnect | ~3.5s |
+Measured over the 30 primary failures of the M3 campaign (kill, pause,
+partition; p50 / max):
 
-Detection and the lease wait overlap, which is where the headroom comes from.
+| Phase | Time |
+|---|---|
+| Suspicion → primary lease gone from the majority, plus one tick | 1.50s / 1.75s |
+| Lease gone → new primary published (claim, drain, promote, repoint, open writes) | 0.06s / 0.15s |
+| Outside the coordinator: fault → suspicion (agent's 3 failed probes, 2 ticks), router pickup (50ms poll), the client's next commit | 0.94s / 1.18s |
+| **Client-visible recovery: fault → first write acknowledged by the new primary** | **2.49s / 2.87s** |
+
+The lease wait is deliberate: it is what guarantees the old primary has
+stopped (layer 2) before anyone else takes writes. Promotion itself takes
+about 60ms.
 
 ## Promotion rules
 
@@ -71,6 +105,71 @@ Detection and the lease wait overlap, which is where the headroom comes from.
 - Lag is measured from `ha_meta.heartbeat` (the primary writes `NOW(6)` every
   250ms), not `Seconds_Behind_Source`, which has 1s granularity and is
   misleading during IO-thread stalls.
+
+## Coordinator and router (M2)
+
+**Leadership.** Three coordinators compete for a leader lease (3s TTL) on
+the Redis majority. Acquire and renew are one Lua script per instance, and
+the lease counts only on a majority. The lease is renewed every 500ms through
+its own client with a 300ms deadline. Validity is counted from *before* the
+request (minus 10% drift), and a failed renewal does not step down: the
+leader keeps acting until the lease it already has runs out. Only the
+leader acts, and it re-checks leadership before every MySQL change.
+
+**Detection.** The leader declares the primary failed only when three
+independent signals agree:
+- its own probe of the primary fails, or finds it read-only;
+- the primary's agent reports it unreachable or read-only (or no majority
+  holds the agent's record);
+- the primary's lease is gone from a Redis majority.
+
+The first two must agree for 2 ticks (250ms each), then the lease must stay
+absent for one more tick. The lease wait doubles as confirmation: a stall
+shorter than the lease TTL lets the agent renew, which resets detection.
+
+**Failover**, in this order:
+
+1. Claim epoch N+1 on the majority (compare-and-set: one winner per epoch).
+2. Fence the old primary in the background (it is usually unreachable).
+3. Stop every reachable replica's IO thread and wait for its applier to
+   drain the relay log.
+4. Pick the candidate whose `gtid_executed` contains every other's. If none
+   does, the replicas have diverged: the epoch is marked `failed` and a
+   human decides.
+5. Promote it (`RESET REPLICA ALL`, semi-sync source on), repoint the other
+   replicas, and wait until one streams from it.
+6. Fence any other node it saw writable, open writes, and publish epoch
+   N+1 with the new primary. Then record the epoch in `ha_meta.cluster`, the
+   replicated epoch history.
+
+A promotion left unfinished stays `promoting`. Its own coordinator retries
+after one step timeout (2s). A new leader resumes someone else's after
+holding the lease for one step timeout, so no statement the old leader sent
+can still be running. Each attempt claims a fresh epoch.
+
+**Every tick, the leader also:**
+- writes the committed topology back onto any instance that lacks it;
+- fences any writable node that is not the primary;
+- rejoins read-only, non-replicating nodes as replicas, but only if their
+  GTIDs are a subset of the primary's.
+
+A node holding transactions the primary lacks (errant GTIDs) is left fenced
+and reported (`HafoErrantNode`). Its data is never discarded automatically;
+`make rebuild NODE=…` replaces it with a Clone of the primary (M3).
+
+**Topology lost from Redis.** If a Redis majority answers but no record is
+held by a majority (e.g. two instances restarted empty), the leader waits
+5s, longer than any transient state. It then runs an ordinary promotion with
+every reachable node as a candidate and an epoch above anything seen in
+Redis or in `ha_meta.cluster`. The most advanced node wins, normally the
+old primary, which self-fenced when it lost its lease, so nothing diverged.
+
+**Router.** A TCP proxy (writes on 3306, reads on 3307) that follows only
+the committed topology. When the primary changes it closes every write
+connection. While an epoch is `promoting` it refuses new write connections.
+Reads go round robin over replicas that a majority-held record calls
+healthy. If the Redis majority is unreachable it keeps its last view; the
+fencing layers, not the router, stop a stale primary.
 
 ## Agent (M1)
 
@@ -192,6 +291,108 @@ Prometheus timing config, every trial, and the summary.
 - **500ms scrape/eval was not enough** for the alert path: hang detection
   through Prometheus reached 2.4s in validation. It now runs at 250ms (above).
 
+## Findings in M2
+
+- **A metastable probe collapse.** With three coordinators added, every node
+  got 16 status probes a second, and a probe that timed out (200ms) was
+  abandoned while MySQL kept running it. The probe read
+  `performance_schema.global_status`, which aggregates every connection's
+  counters under one global mutex. Abandoned probes queued on that mutex,
+  each new one waited longer, and within a minute 54 queries were stuck in
+  "statistics" for up to 33s and bootstrap failed with `Too many
+  connections`. Fix: the probe no longer reads global status (it counts
+  binlog dump threads instead), `MAX_EXECUTION_TIME` caps abandoned probes
+  server-side, and follower coordinators probe once a second.
+- **Leadership flapped 8 times in 3.5 minutes.** The leader stepped down,
+  and deleted its key, on the first renewal that missed a 100ms Redis
+  deadline. Now a missed renewal changes nothing until the lease already
+  granted runs out, and lease traffic has its own client with a 300ms
+  deadline, renewed every 500ms.
+- **A margin quantized to ticks.** A 300ms lease margin checked on 250ms
+  ticks meant two ticks (500ms) on every failover; it is now one tick.
+- **Fencing a primary with parked commits** (found by the e2e suite on the
+  box). `KILL` does not interrupt a semi-sync wait and that wait blocks
+  read-only, so a woken paused primary stayed writable for 180s. Releasing
+  the parked commits brought it to 300ms; M3 made the release safe (see
+  "How a node is fenced").
+- **Rebuild by replay** needed `replicate_same_server_id` (the IO thread
+  dropped events carrying the node's own server_id, leaving a hole) and a
+  serial applier for the first catch-up. M3 replaced replay with Clone.
+
+## Chaos campaign (M3)
+
+`make bench-failover ARGS="-faults=control,kill,pause,partition,leader-midway -trials=10"`
+breaks the current primary 10 times per fault while one client writes
+through the router, about 60 inserts a second, each row recording which
+server executed it. The next trial fails whichever node is primary by then.
+After each fault the harness heals the old primary and waits until it is a
+healthy replica of the new one. If it holds errant transactions, the harness
+first records what it alone has, then rebuilds it with Clone.
+
+Invariants checked on every trial:
+
+| Invariant | How |
+|---|---|
+| No acknowledged write lost | every write the client saw succeed is on the new primary |
+| The client never saw two primaries | no write acknowledged by the old primary after the new one acknowledged one; none by a third node |
+| Rows only the old primary had were never acknowledged | before a rebuild, diff its `app.writes` against the primary's and check each extra row against the client's log |
+| Exactly one failover per fault | epoch delta (a killed mid-promotion leader accounts for one abandoned epoch) |
+| Never two nodes writable at once | `@@read_only` sampled on every node every 100ms |
+| All nodes identical afterwards | pause writes, wait for every replica to reach the primary's GTID set, compare `CHECKSUM TABLE app.writes` |
+| No failover without a fault | control trials |
+
+Results ([report](../results/failover-20261119-055014.json), on the Linux box):
+
+| Fault | Trials | Recovery p50 / max | Lost acked | Two primaries seen | Diverged rows acked | Extra failovers | Inconsistent | Rebuilt (errant) |
+|---|---|---|---|---|---|---|---|---|
+| control | 10 | n/a | 0 | 0 | 0 | 0 | 0 | 0 |
+| kill | 10 | 2.47s / 2.86s | 0 | 0 | 0 | 0 | 0 | 0 |
+| pause (hung, then wakes) | 10 | 2.30s / 2.81s | 0 | 0 | 0 of 10 | 0 | 0 | 10 |
+| partition | 10 | 2.53s / 2.87s | 0 | 0 | 0 of 1 | 0 | 0 | 1 |
+| leader-midway | 10 | 7.52s / 8.60s | 0 | 0 | 0 of 1 | 0 | 0 | 1 |
+
+- **30 primary failures, 0 acknowledged writes lost** out of 21,451
+  acknowledged in the measured windows. No client ever saw two primaries.
+- **The 12 rows only an old primary held were all unacknowledged.** They are
+  commits that reached its binlog while it waited for an ack no replica
+  would give. They are why pause trials always need a rebuild, and why the
+  rebuild is safe.
+- **The read-only flag was off on two nodes for up to 200ms.** That happened
+  when a paused primary woke up, before its agent fenced it. That node had no
+  route from the router and no replica to acknowledge it, so it took no
+  writes; the acked-write invariants above are the actual split-brain test.
+- **`leader-midway`** kills the leading coordinator right after it claims the
+  next epoch, before it promotes anyone. All 10 recovered under a newer
+  epoch. The extra ~5s is the leader lease (3s TTL) plus the one step
+  timeout (2s) the new leader waits before taking over a foreign claim.
+
+The e2e suite (`make e2e`, 12 scenarios, 78 checks) covers what the campaign
+does not: replica loss, both replicas lost (writes stop rather than fail
+over), one Redis down, two Redis down (the primary self-fences, then the
+topology is rebuilt from MySQL), router restart, coordinator-leader crash,
+and leader and primary dying together. All 12 pass
+([report](../results/e2e-20261119-054454.json)).
+
+## Findings in M3
+
+- **Releasing parked commits opened an ack-without-replica window.** M2's
+  fence turned semi-sync off to release commits parked on an ack. A client
+  connecting between that and `super_read_only` would commit asynchronously
+  and be told it succeeded while no replica had the write; a failover could
+  then lose it. `offline_mode` now shuts clients out first (see "How a node
+  is fenced").
+- **Rebuild by replay stopped finishing.** Replaying the whole binlog into an
+  empty datadir with a serial, fsync-per-transaction applier took longer
+  with every write. By ~18,000 transactions a rebuild no longer finished
+  within 3 minutes, and the e2e suite failed on it. A rebuild now clones the
+  primary (MySQL Clone plugin) in about 9s, copy plus restart plus rejoin,
+  independent of history. This pulls part of M4 forward.
+- **CLONE is refused under `super_read_only`.** The rebuild drops only
+  `super_read_only` and keeps plain `read_only` on. That still blocks every
+  client without SUPER, and it is the flag the agents, coordinator and
+  router read, so nobody treats the node as a writable stray during the
+  copy. The restart restores the persisted `super_read_only`.
+
 ## Behaviors found in M0 that shape later milestones
 
 - **A timed-out write can still commit.** With semi-sync AFTER_SYNC, a
@@ -215,9 +416,9 @@ Prometheus timing config, every trial, and the summary.
 
 | Resume claim | Experiment | Output |
 |---|---|---|
-| Recover service within 5s | Kill primary under load through the router; time from last acked write before to first acked write after | p50 / p95 / max per trial |
-| No split brain in 30 injected failures | Mix of kill, `docker pause`, network partition, coordinator-leader kill. Watcher samples every node's `read_only` every 100ms (at most one writable). After each trial: no errant GTIDs, no acked write lost | JSON report, violation count |
-| Detect unhealthy replica within 2s | `hafoctl bench detect`: pause, kill, partition, stopped applier, stalled applier, plus control trials; time to "unhealthy" on the Redis majority and to the alert firing | **Measured (M1):** 49/49 valid trials detected; agent max 1.31s, alert max 1.98s; 0/10 control false positives ([report](../results/detect-20261118-191421.json)) |
+| Recover service within 5s | `hafoctl bench failover`: break the primary under write load through the router; time from fault to first write acknowledged by the new primary | **Measured (M3):** 30/30 primary failures recovered, p50 2.49s, max 2.87s ([report](../results/failover-20261119-055014.json)) |
+| No split brain in 30 injected failures | Same campaign (kill, pause, partition; plus 10 coordinator-leader kills mid-promotion). Per trial: no acked write lost, client never saw two primaries, rows only the old primary had were never acked, one epoch per fault, checksums equal on all nodes | **Measured (M3):** 0 violations of any invariant across 30 + 10 failures; 0 of 21,451 acked writes lost; 0 failovers in 10 control trials |
+| Detect unhealthy replica within 2s | `hafoctl bench detect`: pause, kill, partition, stopped applier, stalled applier, plus control trials; time to "unhealthy" on the Redis majority and to the alert firing | **Measured (M3 re-run, Linux box):** 50/50 detected; agent max 0.92s, alert max 1.23s; 0/10 control false positives ([report](../results/detect-20261119-060340.json)). M1 on the overloaded Mac: agent max 1.31s, alert max 1.98s ([report](../results/detect-20261118-191421.json)) |
 | Restore under 90s across 3 nodes | Wipe all volumes, restore primary from backup + binlogs, rebuild replicas with Clone, compare checksums | Per-phase timings at a stated dataset size |
 
 The numbers in the resume are targets until these runs produce them; the
@@ -235,7 +436,11 @@ resume quotes what was measured.
       Found in the e2e: Fence now turns semi-sync off to release parked commits (a woken
       paused primary stayed writable 180s, now 300ms); a node rebuilt by replay needs
       `replicate_same_server_id` and a serial applier. M4 replaces replay with Clone.
-- [ ] **M3** Self-fencing, chaos harness, invariant checker, 30-trial campaign.
+- [x] **M3** Chaos campaign: 30 primary failures plus 10 mid-promotion leader
+      kills, 0 invariant violations, recovery max 2.87s. Safe fencing
+      (`offline_mode`), divergence check before rebuilds, Clone-based
+      rebuild. (Self-fencing itself landed in M2.)
 - [ ] **M4** Backups (Bash + Go), binlog archiving, timed restore drills.
+      (Clone for rebuilding a single node already landed in M3.)
 - [ ] **M5** Results write-up, Grafana dashboard, trade-offs (vs Orchestrator,
       Group Replication).

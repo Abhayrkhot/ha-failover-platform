@@ -1,0 +1,1799 @@
+{
+  "kind": "failover",
+  "commit": "7f765c5-dirty",
+  "started_at": "2026-11-19T05:50:14.837797644Z",
+  "finished_at": "2026-11-19T06:01:33.269253953Z",
+  "write_every": "10ms",
+  "trials": [
+    {
+      "fault": "control",
+      "n": 1,
+      "started_at": "2026-11-19T05:50:17.931538934Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 853,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 4037972258 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 2,
+      "started_at": "2026-11-19T05:50:29.054448826Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 852,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 440069177 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 3,
+      "started_at": "2026-11-19T05:50:40.169533587Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 856,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1758059168 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 4,
+      "started_at": "2026-11-19T05:50:51.283436108Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 856,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3023301550 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 5,
+      "started_at": "2026-11-19T05:51:02.38432575Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 713,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2393781247 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 6,
+      "started_at": "2026-11-19T05:51:13.497694143Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 664,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3974002574 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 7,
+      "started_at": "2026-11-19T05:51:24.614975524Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 580,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2485384867 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 8,
+      "started_at": "2026-11-19T05:51:35.733725369Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 588,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 869238109 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 9,
+      "started_at": "2026-11-19T05:51:46.855586088Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 575,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1192353342 on all 3 nodes"
+    },
+    {
+      "fault": "control",
+      "n": 10,
+      "started_at": "2026-11-19T05:51:57.967002756Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-1",
+      "epoch": 9,
+      "acked": 583,
+      "not_acked": 0,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 80,
+        "dual_writable_ms": 0
+      },
+      "old_primary_divergence": {
+        "outcome": "",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 979008468 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 1,
+      "started_at": "2026-11-19T05:52:09.087424615Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 10,
+      "acked": 276,
+      "not_acked": 157,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2856.066,
+      "gap_ms": 2832.505,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 75,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1748.861,
+        "lease_expired": 1748.432,
+        "prepared": 1753.15,
+        "published": 1871.285,
+        "writable": 1870.851
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1992201293 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 2,
+      "started_at": "2026-11-19T05:52:19.704717681Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 11,
+      "acked": 389,
+      "not_acked": 123,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2378.941,
+      "gap_ms": 2369.127,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 70,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1500.4,
+        "lease_expired": 1499.845,
+        "prepared": 1503.009,
+        "published": 1558.609,
+        "writable": 1558.051
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 980467153 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 3,
+      "started_at": "2026-11-19T05:52:29.823195604Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 12,
+      "acked": 390,
+      "not_acked": 148,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2760.963,
+      "gap_ms": 2747.692,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 75,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1751.88,
+        "lease_expired": 1751.181,
+        "prepared": 1754.696,
+        "published": 1812.762,
+        "writable": 1812.525
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 756026032 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 4,
+      "started_at": "2026-11-19T05:52:40.367752164Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 13,
+      "acked": 390,
+      "not_acked": 130,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2463.11,
+      "gap_ms": 2454.278,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 71,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1747.907,
+        "lease_expired": 1747.593,
+        "prepared": 1757.894,
+        "published": 1811.37,
+        "writable": 1810.786
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2967723199 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 5,
+      "started_at": "2026-11-19T05:52:50.630681598Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 14,
+      "acked": 389,
+      "not_acked": 151,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2756.348,
+      "gap_ms": 2734.157,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 74,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1752.659,
+        "lease_expired": 1752.09,
+        "prepared": 1763.241,
+        "published": 1829.14,
+        "writable": 1828.879
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1174457340 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 6,
+      "started_at": "2026-11-19T05:53:01.126579458Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 15,
+      "acked": 389,
+      "not_acked": 128,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2461.372,
+      "gap_ms": 2436.762,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 66,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1748.92,
+        "lease_expired": 1748.342,
+        "prepared": 1751.596,
+        "published": 1795.436,
+        "writable": 1795.226
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2165447273 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 7,
+      "started_at": "2026-11-19T05:53:10.862048357Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 16,
+      "acked": 392,
+      "not_acked": 131,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2467.426,
+      "gap_ms": 2443.949,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 71,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.807,
+        "lease_expired": 1501.351,
+        "prepared": 1504.497,
+        "published": 1561.335,
+        "writable": 1560.718
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 209437516 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 8,
+      "started_at": "2026-11-19T05:53:21.113343579Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 17,
+      "acked": 391,
+      "not_acked": 114,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2270.565,
+      "gap_ms": 2252.094,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 69,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1500.139,
+        "lease_expired": 1499.532,
+        "prepared": 1505.808,
+        "published": 1567.056,
+        "writable": 1566.854
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2959609570 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 9,
+      "started_at": "2026-11-19T05:53:31.117991072Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 18,
+      "acked": 387,
+      "not_acked": 133,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2515.387,
+      "gap_ms": 2494.188,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 71,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1500.503,
+        "lease_expired": 1499.977,
+        "prepared": 1505.582,
+        "published": 1578.169,
+        "writable": 1576.915
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 4260101834 on all 3 nodes"
+    },
+    {
+      "fault": "kill",
+      "n": 10,
+      "started_at": "2026-11-19T05:53:41.351807553Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 19,
+      "acked": 389,
+      "not_acked": 130,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2488.53,
+      "gap_ms": 2471.7,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 72,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1748.119,
+        "lease_expired": 1747.587,
+        "prepared": 1750.752,
+        "published": 1806.33,
+        "writable": 1805.57
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3830900270 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 1,
+      "started_at": "2026-11-19T05:53:51.664062781Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 20,
+      "acked": 394,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2368.406,
+      "gap_ms": 2349.939,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 143,
+        "dual_writable_ms": 200,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1250.868,
+        "lease_expired": 1250.005,
+        "prepared": 1262.453,
+        "published": 1318.312,
+        "writable": 1318.064
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b7845693-e3db-11f1-ab6c-a633eced135e:13831-13832",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2301919469 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 2,
+      "started_at": "2026-11-19T05:54:10.839154522Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 21,
+      "acked": 266,
+      "not_acked": 16,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2299.403,
+      "gap_ms": 2275.484,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 145,
+        "dual_writable_ms": 200,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1251.952,
+        "lease_expired": 1251.114,
+        "prepared": 1260.842,
+        "published": 1380.351,
+        "writable": 1379.385
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b78c523f-e3db-11f1-afd9-ae66ad1df2ea:22990-22991",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2373108625 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 3,
+      "started_at": "2026-11-19T05:54:30.085420445Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 22,
+      "acked": 278,
+      "not_acked": 16,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2806.468,
+      "gap_ms": 2786.748,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 148,
+        "dual_writable_ms": 200,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1500.846,
+        "lease_expired": 1499.828,
+        "prepared": 1512.363,
+        "published": 1626.734,
+        "writable": 1625.979
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b7845693-e3db-11f1-ab6c-a633eced135e:14837-14838",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2366813609 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 4,
+      "started_at": "2026-11-19T05:54:49.782923811Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 23,
+      "acked": 275,
+      "not_acked": 11,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2301.81,
+      "gap_ms": 2292.215,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 135,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1250.209,
+        "lease_expired": 1249.657,
+        "prepared": 1260.074,
+        "published": 1370.42,
+        "writable": 1369.846
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b78c523f-e3db-11f1-afd9-ae66ad1df2ea:23983-23984",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 370425086 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 5,
+      "started_at": "2026-11-19T05:55:08.075074686Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 24,
+      "acked": 391,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2710.182,
+      "gap_ms": 2698.227,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 146,
+        "dual_writable_ms": 200,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1502.753,
+        "lease_expired": 1502.143,
+        "prepared": 1506.281,
+        "published": 1560.454,
+        "writable": 1559.493
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b7845693-e3db-11f1-ab6c-a633eced135e:15922-15923",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 887925478 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 6,
+      "started_at": "2026-11-19T05:55:27.594451143Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 25,
+      "acked": 389,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2189.245,
+      "gap_ms": 2177.578,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 133,
+        "dual_writable_ms": 200,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1250.298,
+        "lease_expired": 1249.628,
+        "prepared": 1254.581,
+        "published": 1309.385,
+        "writable": 1308.937
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b78c523f-e3db-11f1-afd9-ae66ad1df2ea:25372-25373",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 435306538 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 7,
+      "started_at": "2026-11-19T05:55:45.630865541Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 26,
+      "acked": 392,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2650.193,
+      "gap_ms": 2639.467,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 145,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1500.178,
+        "lease_expired": 1499.44,
+        "prepared": 1505.006,
+        "published": 1558.841,
+        "writable": 1558.449
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b7845693-e3db-11f1-ab6c-a633eced135e:17242-17243",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1953601606 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 8,
+      "started_at": "2026-11-19T05:56:04.984717243Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 27,
+      "acked": 390,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2300.645,
+      "gap_ms": 2292.253,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 134,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1250.988,
+        "lease_expired": 1250.378,
+        "prepared": 1255.311,
+        "published": 1310.74,
+        "writable": 1310.209
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b78c523f-e3db-11f1-afd9-ae66ad1df2ea:26759-26760",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 4059993558 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 9,
+      "started_at": "2026-11-19T05:56:23.178815431Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 28,
+      "acked": 390,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2606.706,
+      "gap_ms": 2582.031,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 144,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.257,
+        "lease_expired": 1500.434,
+        "prepared": 1505.578,
+        "published": 1558.399,
+        "writable": 1557.976
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b7845693-e3db-11f1-ab6c-a633eced135e:18564-18565",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3145116207 on all 3 nodes"
+    },
+    {
+      "fault": "pause",
+      "n": 10,
+      "started_at": "2026-11-19T05:56:42.516935175Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 29,
+      "acked": 392,
+      "not_acked": 7,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2270.382,
+      "gap_ms": 2237.48,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 145,
+        "dual_writable_ms": 200,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1249.018,
+        "lease_expired": 1248.655,
+        "prepared": 1251.536,
+        "published": 1301.317,
+        "writable": 1300.756
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b78c523f-e3db-11f1-afd9-ae66ad1df2ea:28150-28151",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 815985623 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 1,
+      "started_at": "2026-11-19T05:57:01.704958576Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 30,
+      "acked": 279,
+      "not_acked": 116,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2738.974,
+      "gap_ms": 2649.333,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 70,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.426,
+        "lease_expired": 1500.586,
+        "prepared": 1508.199,
+        "published": 1622.805,
+        "writable": 1622.309
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3455320881 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 2,
+      "started_at": "2026-11-19T05:57:12.122173721Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 31,
+      "acked": 279,
+      "not_acked": 103,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2558.962,
+      "gap_ms": 2455.425,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 68,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1500.521,
+        "lease_expired": 1499.895,
+        "prepared": 1510.806,
+        "published": 1622.386,
+        "writable": 1621.803
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 727580745 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 3,
+      "started_at": "2026-11-19T05:57:22.317397013Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 32,
+      "acked": 273,
+      "not_acked": 124,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2865.411,
+      "gap_ms": 2757.031,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 168,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1747.925,
+        "lease_expired": 1747.597,
+        "prepared": 1757.362,
+        "published": 1896.134,
+        "writable": 1895.781
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b7845693-e3db-11f1-ab6c-a633eced135e:20127",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3048899753 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 4,
+      "started_at": "2026-11-19T05:57:42.51384136Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 33,
+      "acked": 280,
+      "not_acked": 89,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2413.963,
+      "gap_ms": 2305.816,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 62,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.599,
+        "lease_expired": 1500.931,
+        "prepared": 1512.063,
+        "published": 1651.358,
+        "writable": 1651.117
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1733583075 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 5,
+      "started_at": "2026-11-19T05:57:52.112357544Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 34,
+      "acked": 380,
+      "not_acked": 112,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2717.884,
+      "gap_ms": 2632.358,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 66,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1750.701,
+        "lease_expired": 1750.179,
+        "prepared": 1754.45,
+        "published": 1809.65,
+        "writable": 1809.08
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2706799416 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 6,
+      "started_at": "2026-11-19T05:58:02.108903946Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 35,
+      "acked": 399,
+      "not_acked": 94,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2464.779,
+      "gap_ms": 2380.497,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 58,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.326,
+        "lease_expired": 1500.85,
+        "prepared": 1506.685,
+        "published": 1557.69,
+        "writable": 1557.544
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 2155235914 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 7,
+      "started_at": "2026-11-19T05:58:11.300531287Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 36,
+      "acked": 402,
+      "not_acked": 97,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2524.246,
+      "gap_ms": 2430.369,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 64,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-2",
+          "mysql-1"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.657,
+        "lease_expired": 1501.154,
+        "prepared": 1507.616,
+        "published": 1557.215,
+        "writable": 1557.044
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 3600120317 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 8,
+      "started_at": "2026-11-19T05:58:21.113684776Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 37,
+      "acked": 399,
+      "not_acked": 94,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2456.192,
+      "gap_ms": 2375.276,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 58,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1496.173,
+        "lease_expired": 1495.721,
+        "prepared": 1500.162,
+        "published": 1558.905,
+        "writable": 1558.591
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 738031290 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 9,
+      "started_at": "2026-11-19T05:58:30.2941207Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 38,
+      "acked": 398,
+      "not_acked": 96,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2529.236,
+      "gap_ms": 2432.683,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 59,
+        "dual_writable_ms": 100,
+        "dual_nodes": [
+          "mysql-1",
+          "mysql-2"
+        ]
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1501.636,
+        "lease_expired": 1501.254,
+        "prepared": 1504.857,
+        "published": 1553.686,
+        "writable": 1553.377
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1571032487 on all 3 nodes"
+    },
+    {
+      "fault": "partition",
+      "n": 10,
+      "started_at": "2026-11-19T05:58:39.606967786Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 39,
+      "acked": 402,
+      "not_acked": 112,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 2721.709,
+      "gap_ms": 2619.267,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 61,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 1747.788,
+        "lease_expired": 1747.408,
+        "prepared": 1752.208,
+        "published": 1804.224,
+        "writable": 1803.741
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "consistent": true,
+      "checksum": "app.writes checksum 1922034579 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 1,
+      "started_at": "2026-11-19T05:58:49.053839059Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 41,
+      "acked": 361,
+      "not_acked": 587,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7679.959,
+      "gap_ms": 7658.578,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 134,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.434,
+        "lease_expired": 0,
+        "prepared": 1.657,
+        "published": 68.453,
+        "writable": 68.273
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-1 after it claimed epoch 40, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 290671286 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 2,
+      "started_at": "2026-11-19T05:59:05.817576148Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 43,
+      "acked": 311,
+      "not_acked": 572,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7520.381,
+      "gap_ms": 7498.268,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 133,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.527,
+        "lease_expired": 0,
+        "prepared": 1.938,
+        "published": 80.577,
+        "writable": 79.844
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-2 after it claimed epoch 42, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 983148619 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 3,
+      "started_at": "2026-11-19T05:59:22.37320388Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 45,
+      "acked": 312,
+      "not_acked": 577,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7516.132,
+      "gap_ms": 7493.92,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 133,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.509,
+        "lease_expired": 0,
+        "prepared": 1.732,
+        "published": 75.5,
+        "writable": 74.94
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-1 after it claimed epoch 44, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 840968603 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 4,
+      "started_at": "2026-11-19T05:59:38.977986215Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 47,
+      "acked": 313,
+      "not_acked": 564,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7406.788,
+      "gap_ms": 7393.552,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 221,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.542,
+        "lease_expired": 0,
+        "prepared": 2.116,
+        "published": 71.911,
+        "writable": 71.43
+      },
+      "rejoin": "rebuilt (errant)",
+      "old_primary_divergence": {
+        "outcome": "rebuilt (errant)",
+        "errant_gtids": "b78c523f-e3db-11f1-afd9-ae66ad1df2ea:32603",
+        "diverged_rows": 1,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-3 after it claimed epoch 46, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 1207060230 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 5,
+      "started_at": "2026-11-19T06:00:04.365710754Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 49,
+      "acked": 319,
+      "not_acked": 533,
+      "lost_acked": 0,
+      "phantom_rows": 1,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7929.049,
+      "gap_ms": 7918.117,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 116,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.329,
+        "lease_expired": 0,
+        "prepared": 1.889,
+        "published": 17.807,
+        "writable": 17.55
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-2 after it claimed epoch 48, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 3790973458 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 6,
+      "started_at": "2026-11-19T06:00:19.273985949Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 51,
+      "acked": 391,
+      "not_acked": 548,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7206.789,
+      "gap_ms": 7191.638,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 119,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.519,
+        "lease_expired": 0,
+        "prepared": 0.975,
+        "published": 51.202,
+        "writable": 50.499
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-3 after it claimed epoch 50, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 1472457427 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 7,
+      "started_at": "2026-11-19T06:00:34.459453837Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 53,
+      "acked": 394,
+      "not_acked": 562,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7318.352,
+      "gap_ms": 7295.153,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 120,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.505,
+        "lease_expired": 0,
+        "prepared": 1.497,
+        "published": 48.658,
+        "writable": 48.151
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-1 after it claimed epoch 52, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 26590539 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 8,
+      "started_at": "2026-11-19T06:00:49.722626992Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 55,
+      "acked": 390,
+      "not_acked": 599,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7764.146,
+      "gap_ms": 7753.996,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 124,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.592,
+        "lease_expired": 0,
+        "prepared": 2.158,
+        "published": 41.797,
+        "writable": 41.411
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-2 after it claimed epoch 54, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 1224355680 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 9,
+      "started_at": "2026-11-19T06:01:05.400237082Z",
+      "old_primary": "mysql-1",
+      "new_primary": "mysql-2",
+      "epoch": 57,
+      "acked": 391,
+      "not_acked": 563,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 7339.558,
+      "gap_ms": 7325.425,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 120,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.423,
+        "lease_expired": 0,
+        "prepared": 1.753,
+        "published": 43.578,
+        "writable": 42.598
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-3 after it claimed epoch 56, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 242383965 on all 3 nodes"
+    },
+    {
+      "fault": "leader-midway",
+      "n": 10,
+      "started_at": "2026-11-19T06:01:20.728474411Z",
+      "old_primary": "mysql-2",
+      "new_primary": "mysql-1",
+      "epoch": 59,
+      "acked": 319,
+      "not_acked": 584,
+      "lost_acked": 0,
+      "phantom_rows": 0,
+      "interleaved": 0,
+      "served_by_other": 0,
+      "recovery_ms": 8596.995,
+      "gap_ms": 8587.711,
+      "extra_failovers": 0,
+      "watch": {
+        "samples": 124,
+        "dual_writable_ms": 0
+      },
+      "coordinator_phases_ms": {
+        "claimed": 0.666,
+        "lease_expired": 0,
+        "prepared": 11.056,
+        "published": 32.754,
+        "writable": 32.489
+      },
+      "rejoin": "rejoined",
+      "old_primary_divergence": {
+        "outcome": "rejoined",
+        "diverged_rows": 0,
+        "diverged_acked": 0
+      },
+      "note": "killed hafo-coordinator-1 after it claimed epoch 58, before it promoted anyone",
+      "consistent": true,
+      "checksum": "app.writes checksum 1494605928 on all 3 nodes"
+    }
+  ]
+}

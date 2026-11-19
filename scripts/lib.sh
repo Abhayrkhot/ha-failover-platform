@@ -18,6 +18,22 @@ sql() {
   docker exec -i "hafo-$node" sh -c 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql -uroot --batch --skip-column-names' <<<"$*"
 }
 
+# primary_from_redis — the primary named by the topology a Redis majority holds.
+primary_from_redis() {
+  for i in 1 2 3; do docker exec "hafo-redis-$i" redis-cli GET hafo:topology 2>/dev/null || true; done |
+    python3 -I -c '
+import collections, json, sys
+seen = collections.Counter()
+for line in sys.stdin:
+    try:
+        t = json.loads(line)
+    except ValueError:
+        continue
+    seen[(t["epoch"], t.get("state"), t.get("primary", ""))] += 1
+committed = [k for k, n in seen.items() if n >= 2 and k[1] == "ok"]
+print(max(committed)[2] if committed else "")'
+}
+
 # wait_for NODE SECONDS QUERY  — poll until QUERY returns "1".
 wait_for() {
   local node=$1 secs=$2 query=$3 i

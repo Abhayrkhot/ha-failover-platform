@@ -424,7 +424,8 @@ func (c *Coordinator) rejoin(ctx context.Context, topo cluster.Topology, obs map
 			c.m.rejoins.WithLabelValues("error").Inc()
 			continue
 		}
-		if err := c.exec(ctx, n, q("SET PERSIST super_read_only = ON"), q("SET GLOBAL rpl_semi_sync_source_enabled = OFF")); err != nil {
+		if err := c.exec(ctx, n, q("SET PERSIST super_read_only = ON"), q("SET GLOBAL rpl_semi_sync_source_enabled = OFF"),
+			q("SET GLOBAL offline_mode = OFF")); err != nil {
 			c.log.Warn("rejoin: could not persist read-only", "node", n, "err", err)
 		}
 		c.log.Info("rejoined node as a replica", "node", n, "source", topo.Primary)

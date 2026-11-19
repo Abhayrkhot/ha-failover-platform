@@ -1,0 +1,194 @@
+{
+  "kind": "e2e",
+  "commit": "7f765c5-dirty",
+  "started_at": "2026-11-19T05:21:26.528160609Z",
+  "finished_at": "2026-11-19T05:22:40.570502937Z",
+  "scenarios": [
+    {
+      "name": "steady",
+      "what": "no faults: routing, leadership and writes behave",
+      "checks": [
+        {
+          "name": "topology committed on every Redis",
+          "pass": true,
+          "detail": "epoch 1, primary mysql-1, 3/3 copies"
+        },
+        {
+          "name": "one coordinator leads",
+          "pass": true,
+          "detail": "coordinator-2/1903fe"
+        },
+        {
+          "name": "every node healthy",
+          "pass": true
+        },
+        {
+          "name": "router sends writes to the primary",
+          "pass": true,
+          "detail": "last acked write served by \"mysql-1\""
+        },
+        {
+          "name": "router sends reads to a replica",
+          "pass": true,
+          "detail": "read served by \"mysql-3\" (\u003cnil\u003e)"
+        },
+        {
+          "name": "writes flow without interruption",
+          "pass": true,
+          "detail": "longest gap between acks 19ms"
+        },
+        {
+          "name": "no failover without a fault",
+          "pass": true,
+          "detail": "epoch 1"
+        },
+        {
+          "name": "never two writable nodes",
+          "pass": true,
+          "detail": "100 samples, 0ms dual-writable"
+        }
+      ],
+      "seconds": 13.197463855
+    },
+    {
+      "name": "primary-hang",
+      "what": "the primary freezes (docker pause) and later wakes up",
+      "checks": [
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "2372ms (bound 5s), mysql-1 -\u003e mysql-2, epoch 2"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "389 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rebuilt (errant) "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "1 diverged rows, 0 acked (errant GTIDs \"05d54e28-e3d9-11f1-b094-8abeae99b104:1390-1391\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 2314835031 on all 3 nodes"
+        },
+        {
+          "name": "woken old primary is fenced quickly",
+          "pass": true,
+          "detail": "200ms with two nodes reporting writable"
+        }
+      ],
+      "seconds": 23.665091586
+    },
+    {
+      "name": "leader-dies-mid-failover",
+      "what": "the leader is killed after claiming an epoch, before it promotes",
+      "checks": [
+        {
+          "name": "leader was killed mid-promotion",
+          "pass": true,
+          "detail": "killed hafo-coordinator-2 after it claimed epoch 3, before it promoted anyone"
+        },
+        {
+          "name": "writes recover on a new primary in time",
+          "pass": true,
+          "detail": "7268ms (bound 15s), mysql-2 -\u003e mysql-1, epoch 4"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "392 acked in the window, 0 lost"
+        },
+        {
+          "name": "client never saw two primaries",
+          "pass": true,
+          "detail": "interleaved 0, served by another node 0"
+        },
+        {
+          "name": "exactly one failover",
+          "pass": true,
+          "detail": "0 extra"
+        },
+        {
+          "name": "old primary rejoins (rebuilt if it holds errant transactions)",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "rows only the old primary had were never acknowledged",
+          "pass": true,
+          "detail": "0 diverged rows, 0 acked (errant GTIDs \"\")"
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 2510776345 on all 3 nodes"
+        }
+      ],
+      "seconds": 15.680819035
+    },
+    {
+      "name": "redis-majority-down",
+      "what": "two of three Redis instances stop: the primary must fence itself",
+      "checks": [
+        {
+          "name": "primary fences itself once it cannot renew its lease",
+          "pass": true,
+          "detail": "no writable node 1.722s after losing the Redis majority (self-fence after 1.5s)"
+        },
+        {
+          "name": "writes stop while there is no majority",
+          "pass": true,
+          "detail": "0 acks 3s+ after the loss"
+        },
+        {
+          "name": "nothing is promoted without a majority",
+          "pass": true
+        },
+        {
+          "name": "cluster recovers: topology rebuilt from MySQL's epoch history",
+          "pass": true,
+          "detail": "writes resume 10.622s after Redis restarts (4s delayed start + 5s loss confirmation + promotion); primary mysql-1"
+        },
+        {
+          "name": "no acknowledged write lost",
+          "pass": true,
+          "detail": "391 acked, 1143 not acked"
+        },
+        {
+          "name": "mysql-2 is a healthy replica",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "mysql-3 is a healthy replica",
+          "pass": true,
+          "detail": "rejoined "
+        },
+        {
+          "name": "all nodes identical afterwards",
+          "pass": true,
+          "detail": "app.writes checksum 4033264226 on all 3 nodes"
+        }
+      ],
+      "seconds": 21.498914803
+    }
+  ]
+}
