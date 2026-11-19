@@ -1,15 +1,24 @@
 global:
-  # Fast scrape/eval so detection latency is bounded by our probes, not by
-  # Prometheus. Revisit once M1 measures how detection time splits.
-  scrape_interval: 1s
-  evaluation_interval: 1s
+  # Detection through Prometheus costs up to one scrape plus one rule
+  # evaluation on top of the agent's own detection (worst ~1.15s for a hung
+  # replica). At 500ms each, measured alert latency for a hang reached 2.4s, so
+  # both run at 250ms: worst case ~1.15 + 0.5s. Three targets make this cheap.
+  # The failover path (agent -> Redis -> coordinator) does not go through
+  # Prometheus at all. scrape_timeout must not exceed scrape_interval.
+  scrape_interval: 250ms
+  scrape_timeout: 200ms
+  evaluation_interval: 250ms
+
+rule_files:
+  - /etc/prometheus/rules.yml
 
 scrape_configs:
   - job_name: prometheus
+    scrape_interval: 5s
+    scrape_timeout: 4s
     static_configs:
       - targets: ["localhost:9090"]
 
-  # M1: agents expose /metrics on :9100.
-  # - job_name: agents
-  #   static_configs:
-  #     - targets: ["agent-1:9100", "agent-2:9100", "agent-3:9100"]
+  - job_name: agents
+    static_configs:
+      - targets: ["agent-1:9100", "agent-2:9100", "agent-3:9100"]

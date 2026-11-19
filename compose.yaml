@@ -1,8 +1,8 @@
 name: hafo
 
-# Three "nodes", each a MySQL + Redis pair on one bridge network. The Go agent
-# (M1) and coordinator/router (M2) join this file later. Container names are
-# fixed so chaos tooling can target them directly (docker pause hafo-mysql-1).
+# Three "nodes", each a MySQL + Redis + agent trio on one bridge network. The
+# coordinator and router (M2) join this file later. Container names are fixed
+# so chaos tooling can target them directly (docker pause hafo-mysql-1).
 
 x-mysql: &mysql
   image: mysql:8.4.13
@@ -28,6 +28,21 @@ x-redis: &redis
   command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb"]
   healthcheck:
     test: ["CMD", "redis-cli", "ping"]
+    interval: 2s
+    timeout: 2s
+    retries: 15
+  networks: [hanet]
+
+# The agent is its own container, not a process inside the MySQL container:
+# pausing or killing MySQL must not silence the thing that reports it.
+x-agent: &agent
+  # Built once by agent-1; the other two reuse the tag (parallel builds of the
+  # same tag collide).
+  image: hafo-agent:local
+  pull_policy: never
+  env_file: deploy/dev.env
+  healthcheck:
+    test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9100/healthz"]
     interval: 2s
     timeout: 2s
     retries: 15
@@ -85,6 +100,31 @@ services:
     hostname: redis-3
     ports: ["127.0.0.1:63793:6379"]
 
+  agent-1:
+    <<: *agent
+    build:
+      context: .
+      target: agent
+    pull_policy: build
+    container_name: hafo-agent-1
+    hostname: agent-1
+    command: ["-node=mysql-1", "-mysql-addr=mysql-1:3306"]
+    ports: ["127.0.0.1:19101:9100"]
+
+  agent-2:
+    <<: *agent
+    container_name: hafo-agent-2
+    hostname: agent-2
+    command: ["-node=mysql-2", "-mysql-addr=mysql-2:3306"]
+    ports: ["127.0.0.1:19102:9100"]
+
+  agent-3:
+    <<: *agent
+    container_name: hafo-agent-3
+    hostname: agent-3
+    command: ["-node=mysql-3", "-mysql-addr=mysql-3:3306"]
+    ports: ["127.0.0.1:19103:9100"]
+
   prometheus:
     image: prom/prometheus:v3.5.0
     container_name: hafo-prometheus
@@ -96,6 +136,7 @@ services:
     ports: ["127.0.0.1:19090:9090"]
     volumes:
       - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./deploy/prometheus/rules.yml:/etc/prometheus/rules.yml:ro
       - prometheus-data:/prometheus
     networks: [hanet]
 

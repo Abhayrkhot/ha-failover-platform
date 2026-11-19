@@ -1,0 +1,57 @@
+# Every alert about a node carries the agent's `node` label, so the detection
+# bench (hafoctl bench detect) can match alerts to the node it broke.
+groups:
+  - name: hafo-nodes
+    rules:
+      # The agent's verdict is already debounced (fail-after / recover-after),
+      # so no extra `for:` here: firing as soon as Prometheus sees it is the point.
+      - alert: HafoNodeUnhealthy
+        expr: hafo_node_healthy == 0
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} is unhealthy (see hafoctl health for reasons)"
+
+      # Same threshold as the agent's -max-lag.
+      - alert: HafoReplicationLagHigh
+        expr: hafo_replication_lag_seconds > 1
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.node }} is {{ $value | printf \"%.2f\" }}s behind the primary"
+
+      - alert: HafoReplicationStopped
+        expr: hafo_replication_io_running == 0 or hafo_replication_sql_running == 0
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} replication thread is not running"
+
+      # Error *rate*: the share of probes failing. A single timeout is noise on
+      # a busy host; one in five failing for 10s is a sick node or network.
+      - alert: HafoProbeErrorRateHigh
+        expr: |
+          sum by (node) (rate(hafo_mysql_probe_errors_total[10s]))
+            / sum by (node) (rate(hafo_mysql_probes_total[10s])) > 0.2
+        labels: {severity: warning}
+        annotations:
+          summary: "{{ $labels.node }}: {{ $value | humanizePercentage }} of probes failing"
+
+      - alert: HafoPrimaryWritesBlocked
+        expr: hafo_heartbeat_blocked_writes > 0
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} cannot complete commits (no semi-sync ack)"
+
+      - alert: HafoRedisQuorumLost
+        expr: hafo_redis_quorum == 0
+        for: 1s
+        labels: {severity: critical}
+        annotations:
+          summary: "{{ $labels.node }} cannot publish health to a Redis majority"
+
+  - name: hafo-agents
+    rules:
+      - alert: HafoAgentDown
+        expr: up{job="agents"} == 0
+        for: 2s
+        labels: {severity: critical}
+        annotations:
+          summary: "agent {{ $labels.instance }} is not being scraped"

@@ -1,0 +1,857 @@
+{
+  "kind": "detect",
+  "commit": "4fb3ef0-dirty",
+  "target": "mysql-3",
+  "started_at": "2026-11-18T19:14:21.464218-05:00",
+  "finished_at": "2026-11-18T19:19:38.158996-05:00",
+  "agent_config": {
+    "fail_after": 3,
+    "health_ttl": "1.5s",
+    "heartbeat_interval": "250ms",
+    "heartbeat_timeout": "1s",
+    "max_lag": "1s",
+    "mysql_addr": "mysql-3:3306",
+    "node": "mysql-3",
+    "probe_interval": "250ms",
+    "probe_timeout": "200ms",
+    "publish_timeout": "100ms",
+    "recover_after": 2,
+    "redis_addrs": [
+      "redis-1:6379",
+      "redis-2:6379",
+      "redis-3:6379"
+    ]
+  },
+  "prometheus_global": {
+    "evaluation_interval": "250ms",
+    "scrape_interval": "250ms",
+    "scrape_timeout": "200ms"
+  },
+  "summary": [
+    {
+      "fault": "control",
+      "trials": 10,
+      "agent_missed": 10,
+      "alert_missed": 10,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 0,
+        "p95": 0,
+        "max": 0
+      },
+      "alert_ms": {
+        "p50": 0,
+        "p95": 0,
+        "max": 0
+      }
+    },
+    {
+      "fault": "pause",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 778.893,
+        "p95": 979.886,
+        "max": 979.886
+      },
+      "alert_ms": {
+        "p50": 1127.01,
+        "p95": 1233.738,
+        "max": 1233.738
+      }
+    },
+    {
+      "fault": "kill",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 767.699,
+        "p95": 1264.922,
+        "max": 1264.922
+      },
+      "alert_ms": {
+        "p50": 1182.397,
+        "p95": 1325.042,
+        "max": 1325.042
+      }
+    },
+    {
+      "fault": "stop-sql",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 97.593,
+        "p95": 458.787,
+        "max": 458.787
+      },
+      "alert_ms": {
+        "p50": 566.131,
+        "p95": 1672.194,
+        "max": 1672.194
+      }
+    },
+    {
+      "fault": "applier-stall",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 1,
+      "agent_ms": {
+        "p50": 166.97899999999993,
+        "p95": 248.09899999999993,
+        "max": 248.09899999999993
+      },
+      "alert_ms": {
+        "p50": 563.222,
+        "p95": 1007.93,
+        "max": 1007.93
+      }
+    },
+    {
+      "fault": "partition",
+      "trials": 10,
+      "agent_missed": 0,
+      "alert_missed": 0,
+      "suspect": 0,
+      "agent_ms": {
+        "p50": 801.348,
+        "p95": 1312.981,
+        "max": 1312.981
+      },
+      "alert_ms": {
+        "p50": 1428.029,
+        "p95": 1980.121,
+        "max": 1980.121
+      }
+    }
+  ],
+  "trials": [
+    {
+      "fault": "control",
+      "n": 1,
+      "started_at": "2026-11-18T19:14:24.427759-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 2,
+      "started_at": "2026-11-18T19:14:29.578105-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 3,
+      "started_at": "2026-11-18T19:14:34.677417-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 4,
+      "started_at": "2026-11-18T19:14:39.792839-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 5,
+      "started_at": "2026-11-18T19:14:44.917678-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 6,
+      "started_at": "2026-11-18T19:14:50.021856-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 7,
+      "started_at": "2026-11-18T19:14:55.106257-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 8,
+      "started_at": "2026-11-18T19:15:00.157015-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 9,
+      "started_at": "2026-11-18T19:15:05.227373-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "control",
+      "n": 10,
+      "started_at": "2026-11-18T19:15:10.389538-05:00",
+      "inject_ms": 0,
+      "unhealthy_at_ms": 0
+    },
+    {
+      "fault": "pause",
+      "n": 1,
+      "started_at": "2026-11-18T19:15:15.450423-05:00",
+      "inject_ms": 99.668,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 778.893,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 992.882,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 2,
+      "started_at": "2026-11-18T19:15:19.213655-05:00",
+      "inject_ms": 58.134,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 767.097,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 978.896,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 3,
+      "started_at": "2026-11-18T19:15:23.059453-05:00",
+      "inject_ms": 93.643,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 920.012,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1127.01,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 4,
+      "started_at": "2026-11-18T19:15:26.997271-05:00",
+      "inject_ms": 95.891,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 979.886,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1182.056,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 5,
+      "started_at": "2026-11-18T19:15:31.034551-05:00",
+      "inject_ms": 54.627,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 941.92,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1168.317,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 6,
+      "started_at": "2026-11-18T19:15:35.12312-05:00",
+      "inject_ms": 108.084,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 853.169,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1093.43,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 7,
+      "started_at": "2026-11-18T19:15:39.044264-05:00",
+      "inject_ms": 128.16,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 932.63,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1165.062,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 8,
+      "started_at": "2026-11-18T19:15:42.955111-05:00",
+      "inject_ms": 40.603,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 771.211,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 949.287,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 9,
+      "started_at": "2026-11-18T19:15:46.717001-05:00",
+      "inject_ms": 105.794,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 775.272,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1213.244,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "pause",
+      "n": 10,
+      "started_at": "2026-11-18T19:15:50.970393-05:00",
+      "inject_ms": 53.891,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 757.446,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 1233.738,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 1,
+      "started_at": "2026-11-18T19:15:54.938078-05:00",
+      "inject_ms": 433.64,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 739.61,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1066.325,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 2,
+      "started_at": "2026-11-18T19:16:07.180422-05:00",
+      "inject_ms": 396.186,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 607.939,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1233.054,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 3,
+      "started_at": "2026-11-18T19:16:16.304754-05:00",
+      "inject_ms": 467.585,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 794.423,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1123.592,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 4,
+      "started_at": "2026-11-18T19:16:24.267883-05:00",
+      "inject_ms": 313.532,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 767.699,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1170.575,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 5,
+      "started_at": "2026-11-18T19:16:31.73368-05:00",
+      "inject_ms": 281.976,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 791.811,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1205.603,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 6,
+      "started_at": "2026-11-18T19:16:39.780386-05:00",
+      "inject_ms": 1253.267,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 1264.922,
+      "agent_reasons": [
+        "unreachable: dial tcp 172.29.0.8:3306: connect: connection refused"
+      ],
+      "alert_ms": 1322.412,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 7,
+      "started_at": "2026-11-18T19:16:49.780989-05:00",
+      "inject_ms": 408.597,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 759.424,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1164.716,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 8,
+      "started_at": "2026-11-18T19:16:58.347666-05:00",
+      "inject_ms": 741.628,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 939.714,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1325.042,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 9,
+      "started_at": "2026-11-18T19:17:07.021105-05:00",
+      "inject_ms": 432.355,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 790.744,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1203.428,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "kill",
+      "n": 10,
+      "started_at": "2026-11-18T19:17:18.516911-05:00",
+      "inject_ms": 489.324,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 763.332,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1182.397,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 1,
+      "started_at": "2026-11-18T19:17:27.247686-05:00",
+      "inject_ms": 71.867,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 302.825,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 689.358,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 2,
+      "started_at": "2026-11-18T19:17:30.676389-05:00",
+      "inject_ms": 7.796,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 97.593,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 497.326,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 3,
+      "started_at": "2026-11-18T19:17:33.934821-05:00",
+      "inject_ms": 17.076,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 95.77,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 516.865,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 4,
+      "started_at": "2026-11-18T19:17:37.237302-05:00",
+      "inject_ms": 9.983,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 36.21,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 442.336,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 5,
+      "started_at": "2026-11-18T19:17:40.569485-05:00",
+      "inject_ms": 3.494,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 213.416,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 604.156,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 6,
+      "started_at": "2026-11-18T19:17:44.025765-05:00",
+      "inject_ms": 14.772,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 267.993,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 836.319,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 7,
+      "started_at": "2026-11-18T19:17:47.722894-05:00",
+      "inject_ms": 10.009,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 52.449,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 443.403,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 8,
+      "started_at": "2026-11-18T19:17:50.980795-05:00",
+      "inject_ms": 5.237,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 57.498,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 566.131,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 9,
+      "started_at": "2026-11-18T19:17:54.529669-05:00",
+      "inject_ms": 53.033,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 258.3,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 677.583,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "stop-sql",
+      "n": 10,
+      "started_at": "2026-11-18T19:17:58.18484-05:00",
+      "inject_ms": 161.783,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 458.787,
+      "agent_reasons": [
+        "sql_thread_not_running: OFF"
+      ],
+      "alert_ms": 1672.194,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 1,
+      "started_at": "2026-11-18T19:18:03.630548-05:00",
+      "inject_ms": 45.861,
+      "unhealthy_at_ms": 757.609,
+      "agent_ms": 1005.708,
+      "agent_reasons": [
+        "lag_high: 1.193s \u003e 1s"
+      ],
+      "alert_ms": 1765.539,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 2,
+      "started_at": "2026-11-18T19:18:08.671448-05:00",
+      "inject_ms": 37.177,
+      "unhealthy_at_ms": 958.694,
+      "agent_ms": 1154.905,
+      "agent_reasons": [
+        "lag_high: 1.169s \u003e 1s"
+      ],
+      "alert_ms": 1521.916,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 3,
+      "started_at": "2026-11-18T19:18:13.174621-05:00",
+      "inject_ms": 9.331,
+      "unhealthy_at_ms": 955.411,
+      "agent_ms": 1803.057,
+      "agent_reasons": [
+        "unreachable: context deadline exceeded"
+      ],
+      "alert_ms": 2847.344,
+      "alert": "HafoNodeUnhealthy",
+      "suspect": "agent reported [unreachable: context deadline exceeded], expected lag_high"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 4,
+      "started_at": "2026-11-18T19:18:19.10788-05:00",
+      "inject_ms": 9.417,
+      "unhealthy_at_ms": 772.013,
+      "agent_ms": 923.849,
+      "agent_reasons": [
+        "lag_high: 1.142s \u003e 1s"
+      ],
+      "alert_ms": 1360.204,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 5,
+      "started_at": "2026-11-18T19:18:23.241224-05:00",
+      "inject_ms": 8.87,
+      "unhealthy_at_ms": 903.622,
+      "agent_ms": 1075.415,
+      "agent_reasons": [
+        "lag_high: 1.163s \u003e 1s"
+      ],
+      "alert_ms": 1456.139,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 6,
+      "started_at": "2026-11-18T19:18:27.615194-05:00",
+      "inject_ms": 44.705,
+      "unhealthy_at_ms": 815.133,
+      "agent_ms": 956.705,
+      "agent_reasons": [
+        "lag_high: 1.146s \u003e 1s"
+      ],
+      "alert_ms": 1313.096,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 7,
+      "started_at": "2026-11-18T19:18:31.702565-05:00",
+      "inject_ms": 3.151,
+      "unhealthy_at_ms": 925.345,
+      "agent_ms": 1082.504,
+      "agent_reasons": [
+        "lag_high: 1.146s \u003e 1s"
+      ],
+      "alert_ms": 1484.548,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 8,
+      "started_at": "2026-11-18T19:18:36.044768-05:00",
+      "inject_ms": 12.029,
+      "unhealthy_at_ms": 834.657,
+      "agent_ms": 1001.636,
+      "agent_reasons": [
+        "lag_high: 1.148s \u003e 1s"
+      ],
+      "alert_ms": 1389.217,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 9,
+      "started_at": "2026-11-18T19:18:40.267529-05:00",
+      "inject_ms": 10.027,
+      "unhealthy_at_ms": 860.99,
+      "agent_ms": 1012.377,
+      "agent_reasons": [
+        "lag_high: 1.150s \u003e 1s"
+      ],
+      "alert_ms": 1594.603,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "applier-stall",
+      "n": 10,
+      "started_at": "2026-11-18T19:18:44.980286-05:00",
+      "inject_ms": 34.952,
+      "unhealthy_at_ms": 903.116,
+      "agent_ms": 1085.662,
+      "agent_reasons": [
+        "lag_high: 1.164s \u003e 1s"
+      ],
+      "alert_ms": 1520.871,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 1,
+      "started_at": "2026-11-18T19:18:49.523981-05:00",
+      "inject_ms": 402.626,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 1140.555,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1445.43,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 2,
+      "started_at": "2026-11-18T19:18:54.517644-05:00",
+      "inject_ms": 261.951,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 775.984,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1190.452,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 3,
+      "started_at": "2026-11-18T19:18:59.792207-05:00",
+      "inject_ms": 661.792,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 1236.127,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1661.814,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 4,
+      "started_at": "2026-11-18T19:19:05.025666-05:00",
+      "inject_ms": 179.723,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 764.273,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1208.196,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 5,
+      "started_at": "2026-11-18T19:19:10.262401-05:00",
+      "inject_ms": 255.494,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 801.348,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1428.029,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 6,
+      "started_at": "2026-11-18T19:19:15.481293-05:00",
+      "inject_ms": 896.401,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 1312.981,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1980.121,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 7,
+      "started_at": "2026-11-18T19:19:21.083479-05:00",
+      "inject_ms": 379.578,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 963.644,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1569.093,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 8,
+      "started_at": "2026-11-18T19:19:26.253569-05:00",
+      "inject_ms": 329.682,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 869.997,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1455.548,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 9,
+      "started_at": "2026-11-18T19:19:31.516604-05:00",
+      "inject_ms": 194.229,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 778.255,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1178.244,
+      "alert": "HafoNodeUnhealthy"
+    },
+    {
+      "fault": "partition",
+      "n": 10,
+      "started_at": "2026-11-18T19:19:36.740216-05:00",
+      "inject_ms": 262.989,
+      "unhealthy_at_ms": 0,
+      "agent_ms": 787.375,
+      "agent_reasons": [
+        "unreachable: dial tcp: lookup mysql-3 on 127.0.0.11:53: no such host"
+      ],
+      "alert_ms": 1163.077,
+      "alert": "HafoNodeUnhealthy"
+    }
+  ]
+}
